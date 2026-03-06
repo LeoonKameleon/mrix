@@ -68,7 +68,7 @@ public class Scanner {
                     while (peek() != '\n' && !(position >= source.length())) {
                         position++;
                     }
-                } else addToken(check('=') ? EQ : DIV_ASSIGN); break;
+                } else addToken(check('=') ? DIV : DIV_ASSIGN); break;
             case '"': addStringToken(); break;
             case ' ':
             case '\r':
@@ -104,7 +104,10 @@ public class Scanner {
     private void addNumberToken() {
         boolean integer = true;
         while (isDigit(peek()) && !(position >= source.length())) position++;
-        if (peek() == '.') integer = false;
+        if (peek() == '.') {
+            integer = false;
+            position++;
+        }
         while (isDigit(peek()) && !(position >= source.length())) position++;
         if (integer) {
             addToken(INT_NUM, Integer.parseInt(source.substring(start, position)));
