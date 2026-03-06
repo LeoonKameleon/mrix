@@ -3,4 +3,7 @@
     <groupId>com.mrix</groupId>
     <artifactId>mrix</artifactId>
     <version>1</version>
+    <properties>
+        <maven.compiler.release>25</maven.compiler.release>
+    </properties>
 </project>
