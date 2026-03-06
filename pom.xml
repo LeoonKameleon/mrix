@@ -4,6 +4,7 @@
     <artifactId>mrix</artifactId>
     <version>1</version>
     <properties>
-        <maven.compiler.release>25</maven.compiler.release>
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
     </properties>
 </project>

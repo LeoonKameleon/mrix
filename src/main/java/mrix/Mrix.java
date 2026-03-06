@@ -2,7 +2,7 @@ package mrix;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class Mrix {
@@ -19,7 +19,7 @@ public class Mrix {
         }
     }
     private static void runFile(String filename) throws IOException {
-        String content = Files.readString(Path.of(filename));
+        String content = Files.readString(Paths.get(filename));
         run(content);
         if (hadError) {
             System.exit(1);
@@ -33,7 +33,7 @@ public class Mrix {
             System.out.println(token);
         }
     }
-    private static void error(int line, String message) {
+    static void error(int line, String message) {
         System.out.println("Line " + line + "error: " + message);
     }
 }
