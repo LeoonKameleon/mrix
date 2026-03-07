@@ -28,6 +28,9 @@ public class Scanner {
         keywords.put("zeros", ZEROS);
         keywords.put("ones", ONES);
         keywords.put("print", PRINT);
+        keywords.put("funct", FUNCTION);
+        keywords.put("true", TRUE);
+        keywords.put("false", FALSE);
     }
 
     public Scanner(String source) {
