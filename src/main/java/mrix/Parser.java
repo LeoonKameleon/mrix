@@ -3,7 +3,7 @@ package mrix;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.Node;
+import mrix.nodes.*;
 
 import static mrix.TokenType.*;
 
@@ -27,7 +27,7 @@ public class Parser {
 
     private Node parseInstructions() {
         List<Node> instructions = new ArrayList<Node>();
-        while (!check(EOF)) {
+        while (!check(EOF) && !check(RIGHT_BRACE)) {
             Node instruction = parseInstruction();
             instructions.add(instruction);
         }
@@ -49,7 +49,7 @@ public class Parser {
             return printNode;
         }
         if (check(FUNCTION)) return parseFunction();
-        if (check(LEFT_PAREN)) return parseBlock();
+        if (check(LEFT_BRACE)) return parseBlock();
         if (check(BREAK)) {
             consume();
             expect(SEMICOLON);
@@ -108,7 +108,7 @@ public class Parser {
 
     private Node parsePrintStatement() {
         consume();
-        Node expressionList = parseExpressionList();
+        List<Node> expressionList = parseExpressionList();
         return new PrintNode(expressionList);
     }
 
@@ -116,10 +116,10 @@ public class Parser {
         consume();
         Token id = consume();
         expect(LEFT_PAREN);
-        Node expressionList = parseExpressionList();
+        List<Token> parameterList = parseParameterList();
         expect(RIGHT_PAREN);
         Node instruction = parseInstruction();
-        return new FunctionNode(id, expressionList, instruction);
+        return new FunctionNode(id, parameterList, instruction);
     }
 
     private Node parseBlock() {
@@ -131,11 +131,12 @@ public class Parser {
 
     private Node parseAssignStatement() {
         Node variable = parseVariable();
-        if (check(ASSIGN)) return new AssignNode(variable, ASSIGN, parseExpression());
-        if (check(ADD_ASSIGN)) return new AssignNode(variable, ADD_ASSIGN, parseExpression());
-        if (check(SUB_ASSIGN)) return new AssignNode(variable, SUB_ASSIGN, parseExpression());
-        if (check(MUL_ASSIGN)) return new AssignNode(variable, MUL_ASSIGN, parseExpression());
-        if (check(DIV_ASSIGN)) return new AssignNode(variable, DIV_ASSIGN, parseExpression());
+        Token op = consume();
+        if (op.getTokenType() == ASSIGN) return new AssignNode(variable, ASSIGN, parseExpression());
+        if (op.getTokenType() == ADD_ASSIGN) return new AssignNode(variable, ADD_ASSIGN, parseExpression());
+        if (op.getTokenType() == SUB_ASSIGN) return new AssignNode(variable, SUB_ASSIGN, parseExpression());
+        if (op.getTokenType() == MUL_ASSIGN) return new AssignNode(variable, MUL_ASSIGN, parseExpression());
+        if (op.getTokenType() == DIV_ASSIGN) return new AssignNode(variable, DIV_ASSIGN, parseExpression());
         throw new RuntimeException("Expected assignment operator");
     }
 
@@ -143,6 +144,7 @@ public class Parser {
         Node expressionList = null;
         Token id = consume();
         if (check(LEFT_BRACK)) {
+            consume();
             expressionList = parseExpressionList();
             expect(RIGHT_BRACK);
         }
@@ -207,11 +209,11 @@ public class Parser {
     private Node parseUnaryExpression() {
         if (check(SUB)) {
             consume();
-            return new UnaryOpNode(SUB, parseUnary());
+            return new UnaryOpNode(SUB, parseUnaryExpression());
         }
         if (check(NOT)) {
             consume();
-            return new UnaryOpNode(NOT, parseUnary());
+            return new UnaryOpNode(NOT, parseUnaryExpression());
         }
         return parsePostfix();
     }
@@ -233,12 +235,68 @@ public class Parser {
         if (check(LEFT_PAREN)) {
             consume();
             Node expression = parseExpression();
+            expect(RIGHT_PAREN);
             return expression;
         }
         if (check(LEFT_BRACK)) return parseMatrix();
         if (check(EYE) || check(ZEROS) || check(ONES)) return parseCreateMatrix();
         if (check(ID)) return parseVariable();
         throw new RuntimeException("Unexpected token: " + tokens.get(position).getTokenType());
+    }
+
+    private List<Node> parseExpressionList() {
+        List<Node> expressions = new ArrayList<Node>();
+        expressions.add(parseExpression());
+        while (check(COMMA)) {
+            consume();
+            expressions.add(parseExpression());
+        }
+        return expressions;
+    }
+
+    private Node parseMatrix() {
+        expect(LEFT_BRACK);
+        Node result;
+        if (check(LEFT_BRACK)) {
+            List<List<Node>> rows = new ArrayList<>();
+            while (check(LEFT_BRACK)) {
+                rows.add(parseMatrixRow());
+            }
+            result = new MatrixNode(rows);
+        } else {
+            result = new MatrixNode(parseExpressionList());
+        }
+        expect(RIGHT_BRACK);
+        return result;
+    }
+
+    private List<Node> parseMatrixRow() {
+        expect(LEFT_BRACK);
+        List<Node> row = parseExpressionList();
+        expect(RIGHT_BRACK);
+        return row;
+    }
+
+    private Node parseCreateMatrix() {
+        Token fun = consume();
+        expect(LEFT_PAREN);
+        List<Node> expressionList = parseExpressionList();
+        expect(RIGHT_PAREN);
+        return new CreateMatrixNode(fun, expressionList);
+    }
+
+    private List<Token> parseParameterList() {
+        List<Token> parameters = new ArrayList<Token>();
+        if (check(ID)) {
+            parameters.add(consume());
+        }
+        while (check(COMMA)) {
+            consume();
+            if (check(ID)) {
+                parameters.add(consume());
+            }
+        }
+        return parameters;
     }
 
     private void expect(TokenType type) {
