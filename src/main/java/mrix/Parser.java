@@ -264,7 +264,7 @@ public class Parser {
             }
             result = new MatrixNode(rows);
         } else {
-            result = new MatrixNode(parseExpressionList());
+            result = new FlatMatrixNode(parseExpressionList());
         }
         expect(RIGHT_BRACK);
         return result;
