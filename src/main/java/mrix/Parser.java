@@ -96,7 +96,7 @@ public class Parser {
         expect(COLON);
         Node expression2 = parseExpression();
         Node instruction = parseInstruction();
-        return new ForNode(expression1, expression2, instruction);
+        return new ForNode(id, expression1, expression2, instruction);
     }
 
     private Node parseReturnStatement() {
@@ -141,7 +141,7 @@ public class Parser {
     }
 
     private Node parseVariable() {
-        Node expressionList = null;
+        List<Node> expressionList = null;
         Token id = consume();
         if (check(LEFT_BRACK)) {
             consume();
@@ -229,8 +229,8 @@ public class Parser {
 
     private Node parsePrimary() {
         if (check(INT_NUM) || check(FLOAT_NUM) || check(STRING) || check(TRUE) || check(FALSE)) {
-            Token type = consume();
-            return new PrimaryNode(type);
+            Token value = consume();
+            return new PrimaryNode(value);
         }
         if (check(LEFT_PAREN)) {
             consume();
