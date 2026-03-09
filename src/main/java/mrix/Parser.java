@@ -91,7 +91,7 @@ public class Parser {
     private Node parseForStatement() {
         consume();
         Token id = consume();
-        expect(EQ);
+        expect(ASSIGN);
         Node expression1 = parseExpression();
         expect(COLON);
         Node expression2 = parseExpression();
@@ -302,7 +302,7 @@ public class Parser {
     private void expect(TokenType type) {
         Token token = tokens.get(position++);
         if (token.getTokenType() != type) {
-            throw new RuntimeException("Expected " + type + ", but got " + token.getTokenType());
+            throw new RuntimeException("Line " + token.getLine() + ": Expected " + type + ", but got " + token.getTokenType());
         }
     }
 

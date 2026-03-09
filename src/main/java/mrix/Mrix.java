@@ -29,9 +29,8 @@ public class Mrix {
         Scanner scanner = new Scanner(content);
         List<Token> tokens = scanner.tokenize();
 
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
+        Parser parser = new Parser(tokens);
+        parser.parseProgram();
     }
     static void error(int line, String message) {
         System.out.println("Line " + line + "error: " + message);

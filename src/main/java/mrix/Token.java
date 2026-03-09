@@ -17,6 +17,10 @@ public class Token {
         return type;
     }
 
+    public int getLine() {
+        return line;
+    }
+
     @Override
     public String toString() {
         return type + " " + lexeme + " " + literal;

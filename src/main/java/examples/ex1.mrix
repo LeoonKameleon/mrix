@@ -1,5 +1,27 @@
 a = 5.12;
 
-for x = 12 {
-a += 1;
+for x = 0:5 {
+    a += 1;
+}
+
+a = [1, 2, 6];
+
+print [1, 2];
+
+x = 12;
+
+while (x == 5) {
+    print x;
+    x += 1;
+    for i = 0:12 {
+        print i;
+        if (x == 12) print x;
+        else x += 1;
+    }
+}
+
+funct x(a, b) {
+    for i = a:b {
+        print i;
+    }
 }
