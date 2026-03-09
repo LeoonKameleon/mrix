@@ -174,9 +174,9 @@ public class Parser {
     private Node parseOrExpression() {
         Node left = parseAndExpression();
         while (check(OR)) {
-            consume();
+            Token op = consume();
             Node right = parseAndExpression();
-            left = new BinaryOpNode(left, OR, right);
+            left = new BinaryOpNode(left, op, right);
         }
         return left;
     }
@@ -184,9 +184,9 @@ public class Parser {
     private Node parseAndExpression() {
         Node left = parseComparisonExpression();
         while (check(AND)) {
-            consume();
+            Token op = consume();
             Node right = parseComparisonExpression();
-            left = new BinaryOpNode(left, AND, right);
+            left = new BinaryOpNode(left, op, right);
         }
         return left;
     }
@@ -196,7 +196,7 @@ public class Parser {
         while (check(EQ) || check(NOT_EQ) || check(GREATER) || check(LESS) || check(GREATER_EQ) || check(LESS_EQ)) {
             Token op = consume();
             Node right = parseAdditiveExpression();
-            left = new BinaryOpNode(left, op.getTokenType(), right);
+            left = new BinaryOpNode(left, op, right);
         }
         return left;
     }
@@ -206,7 +206,7 @@ public class Parser {
         while (check(ADD) || check(SUB) || check(DOT_ADD) || check(DOT_SUB)) {
             Token op = consume();
             Node right = parseMultiplicativeExpression();
-            left = new BinaryOpNode(left, op.getTokenType(), right);
+            left = new BinaryOpNode(left, op, right);
         }
         return left;
     }
@@ -216,19 +216,19 @@ public class Parser {
         while (check(MUL) || check(DIV) || check(DOT_MUL) || check(DOT_DIV)) {
             Token op = consume();
             Node right = parseUnaryExpression();
-            left = new BinaryOpNode(left, op.getTokenType(), right);
+            left = new BinaryOpNode(left, op, right);
         }
         return left;
     }
 
     private Node parseUnaryExpression() {
         if (check(SUB)) {
-            consume();
-            return new UnaryOpNode(SUB, parseUnaryExpression());
+            Token op = consume();
+            return new UnaryOpNode(op, parseUnaryExpression());
         }
         if (check(NOT)) {
-            consume();
-            return new UnaryOpNode(NOT, parseUnaryExpression());
+            Token op = consume();
+            return new UnaryOpNode(op, parseUnaryExpression());
         }
         return parsePostfix();
     }
