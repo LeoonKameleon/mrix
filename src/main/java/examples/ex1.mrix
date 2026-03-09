@@ -25,3 +25,5 @@ funct x(a, b) {
         print i;
     }
 }
+
+a = x(12, 15);

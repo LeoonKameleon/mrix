@@ -9,10 +9,12 @@ import static mrix.TokenType.*;
 
 public class Parser {
     private List<Token> tokens;
+    private int size;
     private int position;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
+        this.size = tokens.size();
     }
     public Node parseProgram() {
         Node result = parseInstructionsOpt();
@@ -59,6 +61,11 @@ public class Parser {
             consume();
             expect(SEMICOLON);
             return new ContinueNode();
+        }
+        if (check(ID) && peek(1).getTokenType() == LEFT_PAREN) {
+            Node call = parseFunctionCall();
+            expect(SEMICOLON);
+            return call;
         }
         Node assignNode = parseAssignStatement();
         expect(SEMICOLON);
@@ -127,6 +134,14 @@ public class Parser {
         Node instructions = parseInstructions();
         expect(RIGHT_BRACE);
         return new BlockNode(instructions);
+    }
+
+    private Node parseFunctionCall() {
+        Token id = consume();
+        expect(LEFT_PAREN);
+        List<Node> expressionList = parseExpressionList();
+        expect(RIGHT_PAREN);
+        return new FunctionCallNode(id, expressionList);
     }
 
     private Node parseAssignStatement() {
@@ -240,7 +255,10 @@ public class Parser {
         }
         if (check(LEFT_BRACK)) return parseMatrix();
         if (check(EYE) || check(ZEROS) || check(ONES)) return parseCreateMatrix();
-        if (check(ID)) return parseVariable();
+        if (check(ID)) {
+            if (peek(1).getTokenType() == LEFT_PAREN) return parseFunctionCall();
+            return parseVariable();
+        }
         throw new RuntimeException("Unexpected token: " + tokens.get(position).getTokenType());
     }
 
@@ -312,7 +330,13 @@ public class Parser {
     }
 
     private Token consume() {
-        if (position >= tokens.size()) return tokens.get(tokens.size()-1);
+        if (position >= size) return tokens.get(size-1);
         return tokens.get(position++);
+    }
+
+    private Token peek(int steps) {
+        int index = position + steps;
+        if (index >= size) return tokens.get(size-1);
+        return tokens.get(index);
     }
 }
