@@ -239,7 +239,7 @@ public class Parser {
             Token op = consume();
             return new PostfixNode(primary, op);
         }
-        return new PostfixNode(primary, null);
+        return primary;
     }
 
     private Node parsePrimary() {
