@@ -1,3 +1,7 @@
 package mrix.nodes;
 
-public interface Node {}
+import mrix.DataType;
+
+public interface Node {
+    DataType accept(NodeVisitor visitor);
+}

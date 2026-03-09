@@ -1,3 +1,9 @@
 package mrix.nodes;
 
-public class BreakNode implements Node {}
+import mrix.DataType;
+
+public class BreakNode implements Node {
+    public DataType accept(NodeVisitor visitor) {
+        return visitor.visitBreakNode(this);
+    }
+}

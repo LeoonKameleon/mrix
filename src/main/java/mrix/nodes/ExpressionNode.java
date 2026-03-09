@@ -1,8 +1,17 @@
 package mrix.nodes;
 
+import mrix.DataType;
+
 public class ExpressionNode implements Node {
-    public Node orExpression;
+    private final Node orExpression;
     public ExpressionNode(Node orExpression) {
         this.orExpression = orExpression;
+    }
+    public DataType accept(NodeVisitor visitor) {
+        return visitor.visitExpressionNode(this);
+    }
+
+    public Node getOrExpression() {
+        return orExpression;
     }
 }
