@@ -1,12 +1,12 @@
 package mrix.nodes;
 
 import mrix.DataType;
-import mrix.TokenType;
+import mrix.Token;
 
 public class PostfixNode implements Node {
     private final Node primary;
-    private final TokenType op;
-    public PostfixNode(Node primary, TokenType op) {
+    private final Token op;
+    public PostfixNode(Node primary, Token op) {
         this.primary = primary;
         this.op = op;
     }
@@ -18,7 +18,7 @@ public class PostfixNode implements Node {
         return primary;
     }
 
-    public TokenType getOp() {
+    public Token getOp() {
         return op;
     }
 }

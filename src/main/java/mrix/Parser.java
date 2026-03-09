@@ -236,8 +236,8 @@ public class Parser {
     private Node parsePostfix() {
         Node primary = parsePrimary();
         if (check(TRANSPOSE)) {
-            consume();
-            return new PostfixNode(primary, TRANSPOSE);
+            Token op = consume();
+            return new PostfixNode(primary, op);
         }
         return new PostfixNode(primary, null);
     }
