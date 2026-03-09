@@ -4,13 +4,16 @@ import mrix.nodes.*;
 
 import static mrix.TokenType.*;
 import static mrix.DataType.*;
+import static mrix.DataType.FUNCTION;
 
+import java.lang.Character.UnicodeScript;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TypeChecker implements NodeVisitor {
     private SymbolTable table = new SymbolTable(null);
     private List<String> errors = new ArrayList<String>();
+    private int loopDepth;
 
     public DataType visitPrimaryNode(PrimaryNode node) {
         switch(node.getValue().getTokenType()) {
@@ -101,6 +104,7 @@ public class TypeChecker implements NodeVisitor {
                 return UNKNOWN;
         }
     }
+
     public DataType visitUnaryOpNode(UnaryOpNode node) {
         Token op = node.getOp();
         DataType type = node.getUnaryExpression().accept(this);
@@ -117,5 +121,189 @@ public class TypeChecker implements NodeVisitor {
         return UNKNOWN;
     }
 
-    
+    public DataType visitPostfixNode(PostfixNode node) {
+        Token op = node.getOp();
+        DataType type = node.getPrimary().accept(this);
+        if (op == null) return type;
+        if (op.getTokenType() == TRANSPOSE && type == MATRIX) return MATRIX;
+        errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + TRANSPOSE + "': " + type);
+        return UNKNOWN;
+    }
+
+    public DataType visitMatrixNode(MatrixNode node) {
+        int rowLength = -1;
+        for (List<Node> row : node.getRows()) {
+            if (rowLength == -1) rowLength = row.size();
+            else if (rowLength != row.size()) {
+                errors.add("Matrix rows have different lengths");
+                return UNKNOWN;
+            }
+            for (Node element : row) {
+                DataType type = element.accept(this);
+                if (type == MATRIX || type == DataType.STRING) {
+                    errors.add("Invalid element type in matrix: " + type);
+                    return UNKNOWN;
+                }
+            }
+        }
+        return MATRIX;
+    }
+
+    public DataType visitFlatMatrixNode(FlatMatrixNode node) {
+        for (Node element : node.getExpressionList()) {
+            DataType type = element.accept(this);
+            if (type == MATRIX || type == DataType.STRING) {
+                errors.add("Invalid element type in flat matrix: " + type);
+                return UNKNOWN;
+            }
+        }
+        return MATRIX;
+    }
+
+    public DataType visitCreateMatrixNode(CreateMatrixNode node) {
+        List<Node> expressionList = node.getExpressionList();
+        Token fun = node.getFun();
+        switch (fun.getTokenType()) {
+            case EYE:
+                if (expressionList.size() == 1) {
+                    Node size = expressionList.get(0);
+                    DataType type = size.accept(this);
+                    if (type == INT) return MATRIX;
+                    errors.add("Invalid eye size type: " + type);
+                }
+            case ZEROS:
+            case ONES:
+                if (expressionList.size() >= 1) {
+                    Node size = expressionList.get(0);
+                    DataType type = size.accept(this);
+                    if (type == INT) return MATRIX;
+                    errors.add("Invalid matrix size type: " + type);
+                }
+            default:
+                return UNKNOWN;
+        }
+    }
+
+    public DataType visitIfNode(IfNode node) {
+        DataType type = node.getCondition().accept(this);
+        if (type != BOOL) {
+            errors.add("If condition must be BOOL, got: " + type);
+        }
+        node.getThenNode().accept(this);
+        if (node.getElseNode() != null) node.getElseNode().accept(this);
+        return null;
+    }
+
+    public DataType visitWhileNode(WhileNode node) {
+        DataType type = node.getCondition().accept(this);
+        if (type != BOOL) {
+            errors.add("While condition must be BOOL, got: " + type);
+        }
+        table = table.pushScope();
+        loopDepth++;
+        node.getThenNode().accept(this);
+        loopDepth--;
+        table = table.popScope();
+        return null;
+    }
+
+    public DataType visitForNode(ForNode node) {
+        DataType rangeStartType = node.getRangeStart().accept(this);
+        DataType rangeEndType = node.getRangeEnd().accept(this);
+        if (rangeStartType == INT && rangeEndType == INT) {
+            Token id = node.getId();
+            table = table.pushScope();
+            table.put(id.getLexeme(), new VariableSymbol(id.getLexeme(), INT));
+            loopDepth++;
+            node.getInstruction().accept(this);
+            loopDepth--;
+            table = table.popScope();
+        } else if (rangeStartType != ANY || rangeEndType != ANY) {
+            errors.add("For loop range values must be INT, got: " + rangeStartType + " and " + rangeEndType);
+        }
+        return null;
+    }
+
+    public DataType visitBreakNode(BreakNode node) {
+        if (loopDepth <= 0) {
+            errors.add("Break statement outside of loop");
+        }
+        return null;
+    }
+
+    public DataType visitContinueNode(ContinueNode node) {
+        if (loopDepth <= 0) {
+            errors.add("Continue statement outside of loop");
+        }
+        return null;
+    }
+
+    public DataType visitPrintNode(PrintNode node) {
+        List<Node> expressionList = node.getExpressionList();
+        for (Node element : expressionList) {
+            element.accept(this);
+        }
+        return null;
+    }
+
+    public DataType visitReturnNode(ReturnNode node) {
+        Node expression = node.getExpression();
+        if (expression != null) {
+            expression.accept(this);
+        }
+        return null;
+    }
+
+    public DataType visitBlockNode(BlockNode node) {
+        Node instructions = node.getInstructions();
+        table = table.pushScope();
+        instructions.accept(this);
+        table = table.popScope();
+        return null;
+    }
+
+    public DataType visitProgramNode(ProgramNode node) {
+        List<Node> instructions = node.getInstructions();
+        for (Node instruction : instructions) {
+            instruction.accept(this);
+        }
+        for (String error : errors) {
+            System.out.println(error);
+        }
+        return null;
+    }
+
+    public DataType visitFunctionNode(FunctionNode node) {
+        String name = node.getId().getLexeme();
+        table.put(name, new VariableSymbol(name, FUNCTION));
+        table = table.pushScope();
+        for (Token parameter : node.getParameterList()) {
+            table.put(parameter.getLexeme(), new VariableSymbol(parameter.getLexeme(), ANY));
+        }
+        node.getInstruction().accept(this);
+        table = table.popScope();
+        return null;
+    }
+
+    public DataType visitFunctionCallNode(FunctionCallNode node) {
+        Token id = node.getId();
+        VariableSymbol symbol = table.get(id.getLexeme());
+        if (symbol == null) {
+            errors.add("Line " + node.getId().getLine() + ": Undefined function '" + id.getLexeme() + "'");
+            return UNKNOWN;
+        }
+        if (symbol.getType() != FUNCTION) {
+            errors.add("Line " + node.getId().getLine() + ": '" + id.getLexeme() + "' is not a function");
+            return UNKNOWN;
+        }
+        for (Node argument : node.getExpressionList()) {
+            argument.accept(this);
+        }
+        return UNKNOWN;
+    }
+
+
+    public DataType visitExpressionNode(ExpressionNode node) {
+        return node.getOrExpression().accept(this);
+    }
 }

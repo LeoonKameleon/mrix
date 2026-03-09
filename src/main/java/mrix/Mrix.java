@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import mrix.nodes.Node;
+
 public class Mrix {
     private static boolean hadError = false;
 
@@ -28,9 +30,12 @@ public class Mrix {
     private static void run(String content) {
         Scanner scanner = new Scanner(content);
         List<Token> tokens = scanner.tokenize();
-
+        
         Parser parser = new Parser(tokens);
-        parser.parseProgram();
+        Node ast = parser.parseProgram();
+
+        TypeChecker typeChecker = new TypeChecker();
+        ast.accept(typeChecker);
     }
     static void error(int line, String message) {
         System.out.println("Line " + line + "error: " + message);
