@@ -4,6 +4,7 @@ import java.util.List;
 
 import mrix.DataType;
 import mrix.Token;
+import mrix.Value;
 
 public class VariableNode implements Node {
     private final Token id;
@@ -13,6 +14,10 @@ public class VariableNode implements Node {
         this.expressionList = expressionList;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitVariableNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitVariableNode(this);
     }
 

@@ -1,6 +1,7 @@
 package mrix.nodes;
 
 import mrix.DataType;
+import mrix.Value;
 
 public class WhileNode implements Node {
     private final Node condition;
@@ -10,6 +11,10 @@ public class WhileNode implements Node {
         this.thenNode = instruction;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitWhileNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitWhileNode(this);
     }
 

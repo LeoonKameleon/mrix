@@ -2,6 +2,7 @@ package mrix.nodes;
 
 import mrix.DataType;
 import mrix.Token;
+import mrix.Value;
 
 public class UnaryOpNode implements Node {
     private final Token op;
@@ -11,6 +12,10 @@ public class UnaryOpNode implements Node {
         this.unaryExpression = unaryExpression;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitUnaryOpNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitUnaryOpNode(this);
     }
 

@@ -1,6 +1,7 @@
 package mrix.nodes;
 
 import mrix.DataType;
+import mrix.Value;
 
 public class ReturnNode implements Node {
     private final Node expression;
@@ -8,6 +9,10 @@ public class ReturnNode implements Node {
         this.expression = expression;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitReturnNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitReturnNode(this);
     }
 

@@ -2,6 +2,8 @@ package mrix.nodes;
 
 import mrix.DataType;
 import mrix.Token;
+import mrix.Value;
+
 import java.util.List;
 
 public class CreateMatrixNode implements Node {
@@ -12,6 +14,10 @@ public class CreateMatrixNode implements Node {
         this.expressionList = expressionList;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitCreateMatrixNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitCreateMatrixNode(this);
     }
 

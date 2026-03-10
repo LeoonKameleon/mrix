@@ -16,7 +16,7 @@ public class SymbolTable {
 
     public VariableSymbol get(String name) {
         if (symbols.containsKey(name)) return symbols.get(name);
-        if (this.parent != null) return parent.get(name);
+        if (parent != null) return parent.get(name);
         return null;
     }
 
@@ -25,6 +25,6 @@ public class SymbolTable {
     }
 
     public SymbolTable popScope() {
-        return this.parent;
+        return parent;
     }
 }

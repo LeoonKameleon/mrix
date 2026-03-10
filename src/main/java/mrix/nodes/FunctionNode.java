@@ -4,6 +4,7 @@ import java.util.List;
 
 import mrix.DataType;
 import mrix.Token;
+import mrix.Value;
 
 public class FunctionNode implements Node {
     private final Token id;
@@ -15,6 +16,10 @@ public class FunctionNode implements Node {
         this.instruction = instruction;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitFunctionNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitFunctionNode(this);
     }
 

@@ -1,6 +1,7 @@
 package mrix.nodes;
 import mrix.DataType;
 import mrix.Token;
+import mrix.Value;
 
 public class ForNode implements Node {
     private final Token id;
@@ -14,6 +15,10 @@ public class ForNode implements Node {
         this.instruction = instruction;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitForNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitForNode(this);
     }
 

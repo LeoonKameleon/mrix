@@ -2,6 +2,7 @@ package mrix.nodes;
 
 import mrix.DataType;
 import mrix.TokenType;
+import mrix.Value;
 
 public class AssignNode implements Node {
     private final Node variable;
@@ -13,6 +14,10 @@ public class AssignNode implements Node {
         this.expression = expression;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitAssignNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitAssignNode(this);
     }
 

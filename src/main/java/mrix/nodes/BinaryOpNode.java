@@ -2,6 +2,7 @@ package mrix.nodes;
 
 import mrix.DataType;
 import mrix.Token;
+import mrix.Value;
 
 public class BinaryOpNode implements Node{
     private final Node left;
@@ -13,6 +14,10 @@ public class BinaryOpNode implements Node{
         this.right = right;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitBinaryOpNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitBinaryOpNode(this);
     }
 

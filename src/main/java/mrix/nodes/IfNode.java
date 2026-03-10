@@ -1,6 +1,7 @@
 package mrix.nodes;
 
 import mrix.DataType;
+import mrix.Value;
 
 public class IfNode implements Node {
     private final Node condition;
@@ -12,6 +13,10 @@ public class IfNode implements Node {
         this.elseNode = instruction2;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitIfNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitIfNode(this);
     }
 

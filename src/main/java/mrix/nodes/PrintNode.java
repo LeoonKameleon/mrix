@@ -3,6 +3,7 @@ package mrix.nodes;
 import java.util.List;
 
 import mrix.DataType;
+import mrix.Value;
 
 public class PrintNode implements Node {
     private final List<Node> expressionList;
@@ -10,6 +11,10 @@ public class PrintNode implements Node {
         this.expressionList = expressionList;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitPrintNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitPrintNode(this);
     }
 

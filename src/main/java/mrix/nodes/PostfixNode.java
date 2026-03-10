@@ -2,6 +2,7 @@ package mrix.nodes;
 
 import mrix.DataType;
 import mrix.Token;
+import mrix.Value;
 
 public class PostfixNode implements Node {
     private final Node primary;
@@ -11,6 +12,10 @@ public class PostfixNode implements Node {
         this.op = op;
     }
     public DataType accept(NodeVisitor visitor) {
+        return visitor.visitPostfixNode(this);
+    }
+
+    public Value accept(InterpreterVisitor visitor) {
         return visitor.visitPostfixNode(this);
     }
 
