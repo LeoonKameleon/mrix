@@ -49,8 +49,9 @@ public class Mrix {
 
         Interpreter interpreter = new Interpreter();
         ast.accept(interpreter);
+        interpreter.finish();
     }
     static void error(int line, String message) {
-        System.out.println("Line " + line + "error: " + message);
+        System.out.println("Line " + line + " error: " + message);
     }
 }

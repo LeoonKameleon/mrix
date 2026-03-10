@@ -11,10 +11,13 @@ import mrix.typechecker.DataType;
 import static mrix.tokens.TokenType.*;
 import static mrix.typechecker.DataType.*;
 
+import java.io.PrintWriter;
 import java.util.List;
 
 public class Interpreter implements InterpreterVisitor {
     private Memory memory = new Memory(null);
+    private PrintWriter out = new PrintWriter(System.out);
+
     private double toDouble(Value v) {
         if (v.getType() == INT) return ((Integer) v.getValue()).doubleValue();
         if (v.getType() == BOOL) return (Boolean) v.getValue() ? 1.0 : 0.0;
@@ -180,12 +183,12 @@ public class Interpreter implements InterpreterVisitor {
         Token token = node.getValue();
         Value result;
         switch (token.getTokenType()) {
-            case INT_NUM: result = new Value(Integer.parseInt(token.getLexeme()), INT); break;
+            case INT_NUM: result = Value.of(Integer.parseInt(token.getLexeme())); break;
             case FLOAT_NUM: result = new Value(Double.parseDouble(token.getLexeme()), FLOAT); break;
             case STRING: result = new Value(token.getLexeme(), DataType.STRING); break;
-            case TRUE: result = new Value(Boolean.TRUE, BOOL); break;
-            case FALSE: result = new Value(Boolean.FALSE, BOOL); break;
-            default: return new Value(null, UNKNOWN); 
+            case TRUE: result = Value.TRUE; break;
+            case FALSE: result = Value.FALSE; break;
+            default: return Value.NULL; 
         }
         node.setCachedValue(result);
         return result;
@@ -245,13 +248,13 @@ public class Interpreter implements InterpreterVisitor {
         Token op = node.getOp();
         if (op.getTokenType() == AND) {
             Value left = node.getLeft().accept(this);
-            if (!(Boolean) left.getValue()) return new Value(false, BOOL);
-            return new Value((Boolean) node.getRight().accept(this).getValue(), BOOL);
+            if (!(Boolean) left.getValue()) return Value.FALSE;
+            return Value.of((Boolean) node.getRight().accept(this).getValue());
         }
         if (op.getTokenType() == OR) {
             Value left = node.getLeft().accept(this);
-            if ((Boolean) left.getValue()) return new Value(true, BOOL);
-            return new Value((Boolean) node.getRight().accept(this).getValue(), BOOL);
+            if ((Boolean) left.getValue()) return Value.TRUE;
+            return Value.of((Boolean) node.getRight().accept(this).getValue());
         }
         Value leftValue = node.getLeft().accept(this);
         Value rightValue = node.getRight().accept(this);
@@ -263,11 +266,11 @@ public class Interpreter implements InterpreterVisitor {
         Token op = node.getOp();
         Value value = node.getUnaryExpression().accept(this);
         if (op.getTokenType() == NOT) {
-            if (value.getType() == BOOL) return new Value(!(Boolean) value.getValue(), BOOL);
+            if (value.getType() == BOOL) return Value.of(!(Boolean) value.getValue());
             return null;
         }
         if (op.getTokenType() == SUB) {
-            if (value.getType() == INT) return new Value(-(Integer) value.getValue(), INT);
+            if (value.getType() == INT) return Value.of(-(Integer) value.getValue());
             if (value.getType() == FLOAT) return new Value(-(double) value.getValue(), FLOAT);
             if (value.getType() == MATRIX) {
                 double[][] original = (double[][]) value.getValue();
@@ -385,10 +388,8 @@ public class Interpreter implements InterpreterVisitor {
         int rangeEnd = (int) toDouble(node.getRangeEnd().accept(this));
         String id = node.getId().getLexeme();
         memory = memory.push();
-        Value iterator = new Value(rangeStart, INT);
         for (int i=rangeStart; i<=rangeEnd; i++) {
-            iterator.setValue(i);
-            memory.put(id, iterator);
+            memory.put(id, Value.of(i));
             try {
                 node.getInstruction().accept(this);
             } catch (BreakException e) {
@@ -412,10 +413,23 @@ public class Interpreter implements InterpreterVisitor {
         List<Node> expressionList = node.getExpressionList();
         for (int i = 0; i < expressionList.size(); i++) {
             Value val = expressionList.get(i).accept(this);
-            System.out.print(formatValue(val));
-            if (i < expressionList.size() - 1) System.out.print(" ");
+            switch (val.getType()) {
+                case INT:
+                    out.print((int) val.getValue());
+                    break;
+                case FLOAT:
+                    out.print((double) val.getValue());
+                    break;
+                case STRING:
+                    out.print((String) val.getValue());
+                    break;
+                default:
+                    out.print(formatValue(val));
+                    break;
+            }
+            if (i < expressionList.size() - 1) out.print(" ");
         }
-        System.out.println();
+        out.println();
         return null;
     }
 
@@ -481,5 +495,9 @@ public class Interpreter implements InterpreterVisitor {
 
     public Value visitExpressionNode(ExpressionNode node) {
         return node.getOrExpression().accept(this);
+    }
+
+    public void finish() {
+        out.flush();
     }
 }
