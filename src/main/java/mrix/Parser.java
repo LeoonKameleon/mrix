@@ -281,6 +281,7 @@ public class Parser {
             List<List<Node>> rows = new ArrayList<>();
             while (check(LEFT_BRACK)) {
                 rows.add(parseMatrixRow());
+                if (check(COMMA)) consume();
             }
             result = new MatrixNode(rows);
         } else {
