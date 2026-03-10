@@ -1,17 +1,20 @@
 a = 5.12;
 
-for x = 0:5 {
-    a += 1;
+if (a == 5.12) {
+    print "hejka";
+} else {
+    print "naaaah";
 }
 
-a = [1, 2, 6];
 
-print [1, 2];
+a = [[1, 2, 3],
+     [4, 5, 6],
+     [7, 8, 9]];
 
-funct x(a, b) {
-    for i = a:b {
-        print i;
-    }
+a[0, 2] = 5;
+
+print 2*a;
+
+for x = 0:100000 {
+    print x;
 }
-
-a = x(0, 10000);

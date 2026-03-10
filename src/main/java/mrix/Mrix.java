@@ -15,7 +15,7 @@ public class Mrix {
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
-            System.out.println("Usage: java Mrix <filename>");
+            System.out.println("Usage: mrix <filename>");
             System.exit(1);
         } else if (args[0].endsWith(".mrix")) {
             runFile(args[0]);

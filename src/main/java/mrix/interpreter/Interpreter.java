@@ -5,6 +5,7 @@ import mrix.exceptions.ContinueException;
 import mrix.exceptions.ReturnException;
 import mrix.nodes.*;
 import mrix.tokens.Token;
+import mrix.tokens.TokenType;
 import mrix.typechecker.DataType;
 
 import static mrix.tokens.TokenType.*;
@@ -14,8 +15,6 @@ import java.util.List;
 
 public class Interpreter implements InterpreterVisitor {
     private Memory memory = new Memory(null);
-    private int loopDepth = 0;
-
     private double toDouble(Value v) {
         if (v.getType() == INT) return ((Integer) v.getValue()).doubleValue();
         if (v.getType() == BOOL) return (Boolean) v.getValue() ? 1.0 : 0.0;
@@ -43,121 +42,113 @@ public class Interpreter implements InterpreterVisitor {
         return String.valueOf(v.getValue());
     }
 
-    public Value visitPrimaryNode(PrimaryNode node) {
-        Token token = node.getValue();
-        switch (token.getTokenType()) {
-            case INT_NUM: return new Value(Integer.parseInt(token.getLexeme()), INT);
-            case FLOAT_NUM: return new Value(Double.parseDouble(token.getLexeme()), FLOAT);
-            case STRING: return new Value(token.getLexeme(), DataType.STRING);
-            case TRUE: return new Value(Boolean.TRUE, BOOL);
-            case FALSE: return new Value(Boolean.FALSE, BOOL);
-            default: return new Value(null, UNKNOWN); 
-        }
-    }
-
-    public Value visitVariableNode(VariableNode node) {
-        String name = node.getId().getLexeme();
+    private Value getVariable(VariableNode variable) {
+        String name = variable.getId().getLexeme();
         Value value = memory.get(name);
-        if (value == null) {
-            throw new RuntimeException("Line " + node.getId().getLine() + ": Undefined variable '" + name + "'");
+        if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
+            double[][] matrix = (double[][]) value.getValue();
+            if (matrix.length == 1) {
+                int col = (int) toDouble(variable.getExpressionList().get(0).accept(this));
+                return new Value(matrix[0][col], FLOAT);
+            }
+            int row = (int) toDouble(variable.getExpressionList().get(0).accept(this));
+            int col = (int) toDouble(variable.getExpressionList().get(1).accept(this));
+            return new Value(matrix[row][col], FLOAT);
         }
         return value;
     }
 
-    public Value visitAssignNode(AssignNode node) {
-        Value value = node.getExpression().accept(this);
-        VariableNode variable = (VariableNode) node.getVariable();
-        String name = variable.getId().getLexeme();
-        memory.put(name, value);
-        return null;
-    }
-
-    public Value visitBinaryOpNode(BinaryOpNode node) {
-        Value leftValue = node.getLeft().accept(this);
-        Value rightValue = node.getRight().accept(this);
-        Token op = node.getOp();
-        if (leftValue == null || rightValue == null) return null;
-        switch (op.getTokenType()) {
+    private Value applyOp(Value left, TokenType op, Value right) {
+        switch (op) {
             case AND:
-                return new Value((Boolean) leftValue.getValue() && (Boolean) rightValue.getValue(), BOOL);
+                return new Value((Boolean) left.getValue() && (Boolean) right.getValue(), BOOL);
             case OR:
-                return new Value((Boolean) leftValue.getValue() || (Boolean) rightValue.getValue(), BOOL);
+                return new Value((Boolean) left.getValue() || (Boolean) right.getValue(), BOOL);
             case EQ:
-                return new Value(leftValue.getValue().equals(rightValue.getValue()), BOOL);
+                return new Value(left.getValue().equals(right.getValue()), BOOL);
             case NOT_EQ:
-                return new Value(!leftValue.getValue().equals(rightValue.getValue()), BOOL);
+                return new Value(!left.getValue().equals(right.getValue()), BOOL);
             case GREATER:
-                return new Value(toDouble(leftValue) > toDouble(rightValue), BOOL);
+                return new Value(toDouble(left) > toDouble(right), BOOL);
             case GREATER_EQ:
-                return new Value(toDouble(leftValue) >= toDouble(rightValue), BOOL);
+                return new Value(toDouble(left) >= toDouble(right), BOOL);
             case LESS:
-                return new Value(toDouble(leftValue) < toDouble(rightValue), BOOL);
+                return new Value(toDouble(left) < toDouble(right), BOOL);
             case LESS_EQ:
-                return new Value(toDouble(leftValue) <= toDouble(rightValue), BOOL);
+                return new Value(toDouble(left) <= toDouble(right), BOOL);
             case ADD:
-                if (leftValue.getType() == INT && rightValue.getType() == INT) {
-                    return new Value((Integer) leftValue.getValue() + (Integer) rightValue.getValue(), INT);
+                if (left.getType() == INT && right.getType() == INT) {
+                    return new Value((Integer) left.getValue() + (Integer) right.getValue(), INT);
                 }
-                if (leftValue.getType() == DataType.STRING && rightValue.getType() == DataType.STRING) {
-                    return new Value((String) leftValue.getValue() + (String) rightValue.getValue(), DataType.STRING);
+                if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
+                    return new Value((String) left.getValue() + (String) right.getValue(), DataType.STRING);
                 }
-                return new Value(toDouble(leftValue) + toDouble(rightValue), FLOAT);
+                return new Value(toDouble(left) + toDouble(right), FLOAT);
             case SUB:
-                if (leftValue.getType() == INT && rightValue.getType() == INT) {
-                    return new Value((Integer) leftValue.getValue() - (Integer) rightValue.getValue(), INT);
+                if (left.getType() == INT && right.getType() == INT) {
+                    return new Value((Integer) left.getValue() - (Integer) right.getValue(), INT);
                 }
-                if (leftValue.getType() == DataType.STRING && rightValue.getType() == DataType.STRING) {
-                    return new Value(((String) leftValue.getValue()).replaceFirst((String) rightValue.getValue(), ""), DataType.STRING);
+                if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
+                    return new Value(((String) left.getValue()).replaceFirst((String) right.getValue(), ""), DataType.STRING);
                 }
-                return new Value(toDouble(leftValue) - toDouble(rightValue), FLOAT);
+                return new Value(toDouble(left) - toDouble(right), FLOAT);
             case DIV:
-                if (leftValue.getType() == MATRIX && (rightValue.getType() == INT || rightValue.getType() == FLOAT)) {
-                    double[][] matrix = (double[][]) leftValue.getValue();
-                    double scalar = toDouble(rightValue);
+                if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
+                    double[][] matrix = (double[][]) left.getValue();
+                    double scalar = toDouble(right);
                     double[][] result = new double[matrix.length][matrix[0].length];
                     for (int i = 0; i < matrix.length; i++)
                         for (int j = 0; j < matrix[0].length; j++)
                             result[i][j] = matrix[i][j] / scalar;
                     return new Value(result, MATRIX);
                 }
-                if (leftValue.getType() == INT && rightValue.getType() == INT) {
-                    return new Value((Integer)leftValue.getValue() / (Integer)rightValue.getValue(), INT);
+                if (left.getType() == INT && right.getType() == INT) {
+                    return new Value((Integer)left.getValue() / (Integer)right.getValue(), INT);
                 }
-                return new Value(toDouble(leftValue) / toDouble(rightValue), FLOAT);
+                return new Value(toDouble(left) / toDouble(right), FLOAT);
             case MUL:
-                if (leftValue.getType() == MATRIX && (rightValue.getType() == INT || rightValue.getType() == FLOAT)) {
-                    double[][] matrix = (double[][]) leftValue.getValue();
-                    double scalar = toDouble(rightValue);
+                if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
+                    double[][] matrix = (double[][]) left.getValue();
+                    double scalar = toDouble(right);
                     double[][] result = new double[matrix.length][matrix[0].length];
                     for (int i=0; i<matrix.length; i++)
                         for (int j=0; j<matrix[0].length; j++)
                             result[i][j] = matrix[i][j] * scalar;
                     return new Value(result, MATRIX);
                 }
-                if (leftValue.getType() == INT && rightValue.getType() == INT) {
-                    return new Value((Integer)leftValue.getValue() * (Integer)rightValue.getValue(), INT);
+                if ((left.getType() == INT || left.getType() == FLOAT) && right.getType() == MATRIX) {
+                    double[][] matrix = (double[][]) right.getValue();
+                    double scalar = toDouble(left);
+                    double[][] result = new double[matrix.length][matrix[0].length];
+                    for (int i=0; i<matrix.length; i++)
+                        for (int j=0; j<matrix[0].length; j++)
+                            result[i][j] = matrix[i][j] * scalar;
+                    return new Value(result, MATRIX);
                 }
-                if (leftValue.getType() == DataType.STRING && rightValue.getType() == INT) {
-                    return new Value(((String) leftValue.getValue()).repeat((Integer) rightValue.getValue()), DataType.STRING);
+                if (left.getType() == INT && right.getType() == INT) {
+                    return new Value((Integer)left.getValue() * (Integer)right.getValue(), INT);
                 }
-                if (leftValue.getType() == INT && rightValue.getType() == DataType.STRING) {
-                    return new Value(((String) rightValue.getValue()).repeat((Integer) leftValue.getValue()), DataType.STRING);
+                if (left.getType() == DataType.STRING && right.getType() == INT) {
+                    return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
                 }
-                return new Value(toDouble(leftValue) * toDouble(rightValue), FLOAT);
+                if (left.getType() == INT && right.getType() == DataType.STRING) {
+                    return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
+                }
+                return new Value(toDouble(left) * toDouble(right), FLOAT);
             case DOT_ADD:
             case DOT_SUB:
             case DOT_MUL:
             case DOT_DIV:
-                double[][] left = (double[][]) leftValue.getValue();
-                double[][] right = (double[][]) rightValue.getValue();
-                double[][] result = new double[left.length][left[0].length];
-                for (int i=0; i<left.length; i++) {
-                    for (int j=0; j<left[0].length; j++) {
-                        switch (op.getTokenType()) {
-                            case DOT_ADD: result[i][j] = left[i][j] + right[i][j]; break;
-                            case DOT_SUB: result[i][j] = left[i][j] - right[i][j]; break;
-                            case DOT_MUL: result[i][j] = left[i][j] * right[i][j]; break;
-                            case DOT_DIV: result[i][j] = left[i][j] / right[i][j]; break;
+                double[][] leftMatrix = (double[][]) left.getValue();
+                double[][] rightMatrix = (double[][]) right.getValue();
+                double[][] result = new double[leftMatrix.length][leftMatrix[0].length];
+                for (int i=0; i<leftMatrix.length; i++) {
+                    for (int j=0; j<leftMatrix[0].length; j++) {
+                        switch (op) {
+                            case DOT_ADD: result[i][j] = leftMatrix[i][j] + rightMatrix[i][j]; break;
+                            case DOT_SUB: result[i][j] = leftMatrix[i][j] - rightMatrix[i][j]; break;
+                            case DOT_MUL: result[i][j] = leftMatrix[i][j] * rightMatrix[i][j]; break;
+                            case DOT_DIV: result[i][j] = leftMatrix[i][j] / rightMatrix[i][j]; break;
                             default: break;
                         }
                     }
@@ -166,6 +157,90 @@ public class Interpreter implements InterpreterVisitor {
             default:
                 return null;
         }
+    }
+
+    public Value visitPrimaryNode(PrimaryNode node) {
+        if (node.getCachedValue() != null) return node.getCachedValue();
+        Token token = node.getValue();
+        Value result;
+        switch (token.getTokenType()) {
+            case INT_NUM: result = new Value(Integer.parseInt(token.getLexeme()), INT); break;
+            case FLOAT_NUM: result = new Value(Double.parseDouble(token.getLexeme()), FLOAT); break;
+            case STRING: result = new Value(token.getLexeme(), DataType.STRING); break;
+            case TRUE: result = new Value(Boolean.TRUE, BOOL); break;
+            case FALSE: result = new Value(Boolean.FALSE, BOOL); break;
+            default: return new Value(null, UNKNOWN); 
+        }
+        node.setCachedValue(result);
+        return result;
+    }
+
+    public Value visitVariableNode(VariableNode node) {
+        Value value = getVariable(node);
+        if (value == null)
+            throw new RuntimeException("Line " + node.getId().getLine() + ": Undefined variable '" + node.getId().getLexeme() + "'");
+        return value;
+    }
+
+    private void assignToVariable(VariableNode variable, Value value, boolean isNew) {
+        String name = variable.getId().getLexeme();
+        if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
+            double[][] matrix = (double[][]) memory.get(name).getValue();
+            if (matrix.length == 1) {
+                int col = (int) toDouble(variable.getExpressionList().get(0).accept(this));
+                matrix[0][col] = toDouble(value);
+            } else {
+                int row = (int) toDouble(variable.getExpressionList().get(0).accept(this));
+                int col = (int) toDouble(variable.getExpressionList().get(1).accept(this));
+                matrix[row][col] = toDouble(value);
+            }
+        } else {
+            if (isNew) memory.put(name, value);
+            else memory.set(name, value);
+        }
+    }
+
+    public Value visitAssignNode(AssignNode node) {
+        Value value = node.getExpression().accept(this);
+        VariableNode variable = (VariableNode) node.getVariable();
+        switch (node.getOp()) {
+            case ASSIGN:
+                assignToVariable(variable, value, true);
+                break;
+            case ADD_ASSIGN:
+                assignToVariable(variable, applyOp(getVariable(variable), ADD, value), false);
+                break;
+            case SUB_ASSIGN:
+                assignToVariable(variable, applyOp(getVariable(variable), SUB, value), false);
+                break;
+            case MUL_ASSIGN:
+                assignToVariable(variable, applyOp(getVariable(variable), MUL, value), false);
+                break;
+            case DIV_ASSIGN:
+                assignToVariable(variable, applyOp(getVariable(variable), DIV, value), false);
+                break;
+            default:
+                throw new RuntimeException("Line " + variable.getId().getLine() + " Error: Unknown assignment operator: " + node.getOp());
+        }
+        return null;
+    }
+
+    public Value visitBinaryOpNode(BinaryOpNode node) {
+        Token op = node.getOp();
+        if (op.getTokenType() == AND) {
+            Value left = node.getLeft().accept(this);
+            if (!(Boolean) left.getValue()) return new Value(false, BOOL);
+            return new Value((Boolean) node.getRight().accept(this).getValue(), BOOL);
+        }
+        if (op.getTokenType() == OR) {
+            Value left = node.getLeft().accept(this);
+            if ((Boolean) left.getValue()) return new Value(true, BOOL);
+            return new Value((Boolean) node.getRight().accept(this).getValue(), BOOL);
+        }
+        Value leftValue = node.getLeft().accept(this);
+        Value rightValue = node.getRight().accept(this);
+        if (leftValue == null || rightValue == null) return null;
+        return applyOp(leftValue, op.getTokenType(), rightValue);
     }
 
     public Value visitUnaryOpNode(UnaryOpNode node) {
@@ -177,12 +252,13 @@ public class Interpreter implements InterpreterVisitor {
         }
         if (op.getTokenType() == SUB) {
             if (value.getType() == INT) return new Value(-(Integer) value.getValue(), INT);
-            if (value.getType() == FLOAT) return new Value(-(double) value.getValue(), INT);
+            if (value.getType() == FLOAT) return new Value(-(double) value.getValue(), FLOAT);
             if (value.getType() == MATRIX) {
-                double[][] result = (double[][]) value.getValue();
+                double[][] original = (double[][]) value.getValue();
+                double[][] result = new double[original.length][original[0].length];
                 for (int i=0; i<result.length; i++) {
                     for (int j=0; j<result[0].length; j++) {
-                        result[i][j] *= -1;
+                        result[i][j] = -original[i][j];
                     }
                 }
                 return new Value(result, MATRIX);
@@ -213,9 +289,11 @@ public class Interpreter implements InterpreterVisitor {
 
     public Value visitMatrixNode(MatrixNode node) {
         List<List<Node>> rows = node.getRows();
-        double[][] result = new double[rows.size()][rows.get(0).size()];
-        for (int i=0; i<rows.size(); i++) {
-            for (int j=0; j<rows.get(i).size(); j++) {
+        int rowCount = rows.size();
+        int colCount = rows.get(0).size();
+        double[][] result = new double[rowCount][colCount];
+        for (int i=0; i<rowCount; i++) {
+            for (int j=0; j<colCount; j++) {
                 Value value = rows.get(i).get(j).accept(this);
                 result[i][j] = toDouble(value);
             }
@@ -238,12 +316,12 @@ public class Interpreter implements InterpreterVisitor {
         Token fun = node.getFun();
         int rows, cols;
         if (expressionList.size() == 1) {
-            int n = (Integer) expressionList.get(0).accept(this).getValue();
+            int n = (int) toDouble(expressionList.get(0).accept(this));
             rows = n;
             cols = n;
         } else {
-            rows = (Integer) expressionList.get(0).accept(this).getValue();
-            cols = (Integer) expressionList.get(1).accept(this).getValue();
+            rows = (int) toDouble(expressionList.get(0).accept(this));
+            cols = (int) toDouble(expressionList.get(1).accept(this));
         }
         double[][] result = new double[rows][cols];
         switch (fun.getTokenType()) {
@@ -251,12 +329,12 @@ public class Interpreter implements InterpreterVisitor {
                 for (int i = 0; i < rows; i++)
                     result[i][i] = 1.0;
                 break;
-            case ZEROS:
+            case ONES:
                 for (int i = 0; i < rows; i++)
                     for (int j = 0; j < cols; j++)
                         result[i][j] = 1.0;
                 break;
-            case ONES:
+            case ZEROS:
                 break;
             default:
                 return null;
@@ -267,42 +345,39 @@ public class Interpreter implements InterpreterVisitor {
     public Value visitIfNode(IfNode node) {
         Value value = node.getCondition().accept(this);
         if ((Boolean) value.getValue()) node.getThenNode().accept(this);
-        if (node.getElseNode() != null) node.getElseNode().accept(this);
+        else if (node.getElseNode() != null) node.getElseNode().accept(this);
         return null;
     }
 
     public Value visitWhileNode(WhileNode node) {
-        Value value = node.getCondition().accept(this);
-        while ((Boolean) value.getValue()) {
-            memory = memory.push();
+        memory = memory.push();
+        while ((Boolean) node.getCondition().accept(this).getValue()) {
             try {
                 node.getThenNode().accept(this);
             } catch (BreakException e) {
-                memory = memory.pop();
                 break;
             } catch (ContinueException e) {
             }
-            memory = memory.pop();
         }
+        memory = memory.pop();
         return null;
     }
 
     public Value visitForNode(ForNode node) {
-        int rangeStart = (Integer) node.getRangeStart().accept(this).getValue();
-        int rangeEnd = (Integer) node.getRangeEnd().accept(this).getValue();
+        int rangeStart = (int) toDouble(node.getRangeStart().accept(this));
+        int rangeEnd = (int) toDouble(node.getRangeEnd().accept(this));
         String id = node.getId().getLexeme();
+        memory = memory.push();
         for (int i=rangeStart; i<=rangeEnd; i++) {
-            memory = memory.push();
-            memory.put(id, new Value(i, DataType.INT));
+            memory.put(id, new Value(i, INT));
             try {
                 node.getInstruction().accept(this);
             } catch (BreakException e) {
-                memory = memory.pop();
                 break;
             } catch (ContinueException e) {
             }
-            memory = memory.pop();
         }
+        memory = memory.pop();
         return null;
     }
 
