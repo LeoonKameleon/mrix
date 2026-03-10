@@ -60,10 +60,6 @@ public class Interpreter implements InterpreterVisitor {
 
     private Value applyOp(Value left, TokenType op, Value right) {
         switch (op) {
-            case AND:
-                return new Value((Boolean) left.getValue() && (Boolean) right.getValue(), BOOL);
-            case OR:
-                return new Value((Boolean) left.getValue() || (Boolean) right.getValue(), BOOL);
             case EQ:
                 return new Value(left.getValue().equals(right.getValue()), BOOL);
             case NOT_EQ:
@@ -107,6 +103,15 @@ public class Interpreter implements InterpreterVisitor {
                 }
                 return new Value(toDouble(left) / toDouble(right), FLOAT);
             case MUL:
+                if (left.getType() == INT && right.getType() == INT) {
+                    return new Value((Integer)left.getValue() * (Integer)right.getValue(), INT);
+                }
+                if (left.getType() == DataType.STRING && right.getType() == INT) {
+                    return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
+                }
+                if (left.getType() == INT && right.getType() == DataType.STRING) {
+                    return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
+                }
                 if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
                     double[][] matrix = (double[][]) left.getValue();
                     double scalar = toDouble(right);
@@ -125,14 +130,25 @@ public class Interpreter implements InterpreterVisitor {
                             result[i][j] = matrix[i][j] * scalar;
                     return new Value(result, MATRIX);
                 }
-                if (left.getType() == INT && right.getType() == INT) {
-                    return new Value((Integer)left.getValue() * (Integer)right.getValue(), INT);
-                }
-                if (left.getType() == DataType.STRING && right.getType() == INT) {
-                    return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
-                }
-                if (left.getType() == INT && right.getType() == DataType.STRING) {
-                    return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
+                if (left.getType() == MATRIX && right.getType() == MATRIX) {
+                    double[][] leftMatrix = (double[][]) left.getValue();
+                    double[][] rightMatrix = (double[][]) right.getValue();
+                    if (leftMatrix[0].length == rightMatrix.length) {
+                        int rows = leftMatrix.length;
+                        int cols = rightMatrix[0].length;
+                        int inner = rightMatrix.length;
+
+                        double[][] result = new double[rows][cols];
+
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                for (int k=0; k<inner; k++) {
+                                    result[i][j] += leftMatrix[i][k] * rightMatrix[k][j];
+                                }
+                            }
+                        }
+                        return new Value(result, MATRIX);
+                    }
                 }
                 return new Value(toDouble(left) * toDouble(right), FLOAT);
             case DOT_ADD:
@@ -304,7 +320,8 @@ public class Interpreter implements InterpreterVisitor {
     public Value visitFlatMatrixNode(FlatMatrixNode node) {
         List<Node> row = node.getExpressionList();
         double[][] result = new double[1][row.size()];
-        for (int i=0; i<row.size(); i++) {
+        int size = row.size();
+        for (int i=0; i<size; i++) {
             Value value = row.get(i).accept(this);
             result[0][i] = toDouble(value);
         }
@@ -368,8 +385,10 @@ public class Interpreter implements InterpreterVisitor {
         int rangeEnd = (int) toDouble(node.getRangeEnd().accept(this));
         String id = node.getId().getLexeme();
         memory = memory.push();
+        Value iterator = new Value(rangeStart, INT);
         for (int i=rangeStart; i<=rangeEnd; i++) {
-            memory.put(id, new Value(i, INT));
+            iterator.setValue(i);
+            memory.put(id, iterator);
             try {
                 node.getInstruction().accept(this);
             } catch (BreakException e) {
