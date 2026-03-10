@@ -74,7 +74,7 @@ public class Scanner {
                     while (peek() != '\n' && !(position >= source.length())) {
                         position++;
                     }
-                } else addToken(check('=') ? DIV : DIV_ASSIGN); break;
+                } else addToken(check('=') ? DIV_ASSIGN : DIV); break;
             case '"': addStringToken(); break;
             case ' ':
             case '\r':
