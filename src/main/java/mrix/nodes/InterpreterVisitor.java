@@ -1,6 +1,6 @@
 package mrix.nodes;
 
-import mrix.Value;
+import mrix.interpreter.Value;
 
 public interface InterpreterVisitor {
     Value visitProgramNode(ProgramNode node);

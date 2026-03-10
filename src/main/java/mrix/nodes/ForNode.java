@@ -1,7 +1,7 @@
 package mrix.nodes;
-import mrix.DataType;
-import mrix.Token;
-import mrix.Value;
+import mrix.interpreter.Value;
+import mrix.tokens.Token;
+import mrix.typechecker.DataType;
 
 public class ForNode implements Node {
     private final Token id;

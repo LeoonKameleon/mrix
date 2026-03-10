@@ -1,4 +1,4 @@
-package mrix;
+package mrix.typechecker;
 
 public class VariableSymbol {
     private final String name;

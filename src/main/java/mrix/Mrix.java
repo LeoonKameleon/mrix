@@ -5,7 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import mrix.interpreter.Interpreter;
 import mrix.nodes.Node;
+import mrix.tokens.Token;
+import mrix.typechecker.TypeChecker;
 
 public class Mrix {
     private static boolean hadError = false;
@@ -36,6 +39,16 @@ public class Mrix {
 
         TypeChecker typeChecker = new TypeChecker();
         ast.accept(typeChecker);
+        List<String> errors = typeChecker.getErrors();
+        if (!errors.isEmpty()) {
+            for (String error : errors) {
+                System.out.println(error);
+            }
+            System.exit(1);
+        }
+
+        Interpreter interpreter = new Interpreter();
+        ast.accept(interpreter);
     }
     static void error(int line, String message) {
         System.out.println("Line " + line + "error: " + message);

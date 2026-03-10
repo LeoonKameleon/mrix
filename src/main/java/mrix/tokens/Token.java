@@ -1,4 +1,4 @@
-package mrix;
+package mrix.tokens;
 
 public class Token {
     final TokenType type;

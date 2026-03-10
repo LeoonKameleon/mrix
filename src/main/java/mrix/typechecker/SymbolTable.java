@@ -1,4 +1,4 @@
-package mrix;
+package mrix.typechecker;
 
 import java.util.HashMap;
 

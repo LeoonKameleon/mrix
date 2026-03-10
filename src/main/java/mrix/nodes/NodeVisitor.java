@@ -1,6 +1,6 @@
 package mrix.nodes;
 
-import mrix.DataType;
+import mrix.typechecker.DataType;
 
 public interface NodeVisitor {
     DataType visitProgramNode(ProgramNode node);

@@ -1,12 +1,12 @@
-package mrix;
+package mrix.typechecker;
 
 import mrix.nodes.*;
+import mrix.tokens.Token;
+import mrix.tokens.TokenType;
 
-import static mrix.TokenType.*;
-import static mrix.DataType.*;
-import static mrix.DataType.FUNCTION;
+import static mrix.tokens.TokenType.*;
+import static mrix.typechecker.DataType.*;
 
-import java.lang.Character.UnicodeScript;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -267,15 +267,12 @@ public class TypeChecker implements NodeVisitor {
         for (Node instruction : instructions) {
             instruction.accept(this);
         }
-        for (String error : errors) {
-            System.out.println(error);
-        }
         return null;
     }
 
     public DataType visitFunctionNode(FunctionNode node) {
         String name = node.getId().getLexeme();
-        table.put(name, new VariableSymbol(name, FUNCTION));
+        table.put(name, new VariableSymbol(name, DataType.FUNCTION));
         table = table.pushScope();
         for (Token parameter : node.getParameterList()) {
             table.put(parameter.getLexeme(), new VariableSymbol(parameter.getLexeme(), ANY));
@@ -292,7 +289,7 @@ public class TypeChecker implements NodeVisitor {
             errors.add("Line " + node.getId().getLine() + ": Undefined function '" + id.getLexeme() + "'");
             return UNKNOWN;
         }
-        if (symbol.getType() != FUNCTION) {
+        if (symbol.getType() != DataType.FUNCTION) {
             errors.add("Line " + node.getId().getLine() + ": '" + id.getLexeme() + "' is not a function");
             return UNKNOWN;
         }
@@ -305,5 +302,9 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitExpressionNode(ExpressionNode node) {
         return node.getOrExpression().accept(this);
+    }
+
+    public List<String> getErrors() {
+        return errors;
     }
 }

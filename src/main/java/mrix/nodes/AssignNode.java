@@ -1,8 +1,8 @@
 package mrix.nodes;
 
-import mrix.DataType;
-import mrix.TokenType;
-import mrix.Value;
+import mrix.interpreter.Value;
+import mrix.tokens.TokenType;
+import mrix.typechecker.DataType;
 
 public class AssignNode implements Node {
     private final Node variable;

@@ -2,8 +2,8 @@ package mrix.nodes;
 
 import java.util.List;
 
-import mrix.DataType;
-import mrix.Value;
+import mrix.interpreter.Value;
+import mrix.typechecker.DataType;
 
 public class ProgramNode implements Node {
     private final List<Node> instructions;

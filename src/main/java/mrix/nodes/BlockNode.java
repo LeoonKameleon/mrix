@@ -1,7 +1,7 @@
 package mrix.nodes;
 
-import mrix.DataType;
-import mrix.Value;
+import mrix.interpreter.Value;
+import mrix.typechecker.DataType;
 
 public class BlockNode implements Node {
     private final Node instructions;

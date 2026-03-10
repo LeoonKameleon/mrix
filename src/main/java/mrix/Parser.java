@@ -1,11 +1,13 @@
 package mrix;
 
+import static mrix.tokens.TokenType.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import mrix.nodes.*;
-
-import static mrix.TokenType.*;
+import mrix.tokens.Token;
+import mrix.tokens.TokenType;
 
 public class Parser {
     private List<Token> tokens;
