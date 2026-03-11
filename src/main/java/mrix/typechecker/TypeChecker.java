@@ -168,7 +168,7 @@ public class TypeChecker implements NodeVisitor {
                 if (expressionList.size() == 1) {
                     Node size = expressionList.get(0);
                     DataType type = size.accept(this);
-                    if (type == INT) return MATRIX;
+                    if (type == INT || type == ANY) return MATRIX;
                     errors.add("Invalid eye size type: " + type);
                 }
             case ZEROS:
@@ -176,7 +176,7 @@ public class TypeChecker implements NodeVisitor {
                 if (expressionList.size() >= 1) {
                     Node size = expressionList.get(0);
                     DataType type = size.accept(this);
-                    if (type == INT) return MATRIX;
+                    if (type == INT || type == ANY) return MATRIX;
                     errors.add("Invalid matrix size type: " + type);
                 }
             default:
