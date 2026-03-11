@@ -62,4 +62,8 @@ public class Value {
     public boolean toBoolean() {
         return (boolean) value;
     }
+
+    public double[][] toMatrix() {
+        return (double[][]) value;
+    }
 }

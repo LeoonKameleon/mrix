@@ -20,7 +20,7 @@ public class Interpreter implements InterpreterVisitor {
 
     private String formatValue(Value v) {
         if (v.getType() == MATRIX) {
-            double[][] matrix = (double[][]) v.getValue();
+            double[][] matrix = v.toMatrix();
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < matrix.length; i++) {
                 sb.append("[");
@@ -46,7 +46,7 @@ public class Interpreter implements InterpreterVisitor {
             throw new MrixRuntimeException("Undefined variable: '" + name + "'", variable.getLine());
         }
         if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
-            double[][] matrix = (double[][]) value.getValue();
+            double[][] matrix = value.toMatrix();
             if (matrix.length == 1) {
                 int col = variable.getExpressionList().get(0).accept(this).toInt();
                 return new Value(matrix[0][col], FLOAT);
@@ -77,7 +77,7 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(left.toDouble() <= right.toDouble(), BOOL);
             case ADD:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value((left.toInt() + right.toInt()), INT);
+                    return new Value(left.toInt() + right.toInt(), INT);
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_ADD, ".+", null, op.getLine()), right);
@@ -99,7 +99,7 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(left.toDouble() - right.toDouble(), FLOAT);
             case DIV:
                 if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
-                    double[][] matrix = (double[][]) left.getValue();
+                    double[][] matrix = left.toMatrix();
                     double scalar = right.toDouble();
                     if (scalar == 0) {
                         throw new MrixRuntimeException("Zero division", op.getLine());
@@ -134,7 +134,7 @@ public class Interpreter implements InterpreterVisitor {
                     return new Value(right.toString().repeat(left.toInt()), DataType.STRING);
                 }
                 if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
-                    double[][] matrix = (double[][]) left.getValue();
+                    double[][] matrix = left.toMatrix();
                     double scalar = right.toDouble();
                     double[][] result = new double[matrix.length][matrix[0].length];
                     for (int i=0; i<matrix.length; i++)
@@ -143,7 +143,7 @@ public class Interpreter implements InterpreterVisitor {
                     return new Value(result, MATRIX);
                 }
                 if ((left.getType() == INT || left.getType() == FLOAT) && right.getType() == MATRIX) {
-                    double[][] matrix = (double[][]) right.getValue();
+                    double[][] matrix = right.toMatrix();
                     double scalar = left.toDouble();
                     double[][] result = new double[matrix.length][matrix[0].length];
                     for (int i=0; i<matrix.length; i++)
@@ -152,8 +152,8 @@ public class Interpreter implements InterpreterVisitor {
                     return new Value(result, MATRIX);
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
-                    double[][] leftMatrix = (double[][]) left.getValue();
-                    double[][] rightMatrix = (double[][]) right.getValue();
+                    double[][] leftMatrix = left.toMatrix();
+                    double[][] rightMatrix = right.toMatrix();
                     if (leftMatrix[0].length == rightMatrix.length) {
                         int rows = leftMatrix.length;
                         int cols = rightMatrix[0].length;
@@ -178,8 +178,8 @@ public class Interpreter implements InterpreterVisitor {
             case DOT_SUB:
             case DOT_MUL:
             case DOT_DIV:
-                double[][] leftMatrix = (double[][]) left.getValue();
-                double[][] rightMatrix = (double[][]) right.getValue();
+                double[][] leftMatrix = left.toMatrix();
+                double[][] rightMatrix = right.toMatrix();
                 if (leftMatrix.length != rightMatrix.length ||
                     leftMatrix[0].length != rightMatrix[0].length) {
                     throw new MrixRuntimeException("Matrix size mismatch", op.getLine());
@@ -238,7 +238,7 @@ public class Interpreter implements InterpreterVisitor {
             if (existing == null) {
                 throw new MrixRuntimeException("Undefined variable '" + name + "'", variable.getId().getLine());
             }
-            double[][] matrix = (double[][]) existing.getValue();
+            double[][] matrix = existing.toMatrix();
             if (matrix.length == 1) {
                 int col = variable.getExpressionList().get(0).accept(this).toInt();
                 matrix[0][col] = value.toDouble();
@@ -315,7 +315,7 @@ public class Interpreter implements InterpreterVisitor {
             if (value.getType() == INT) return Value.of(-value.toInt());
             if (value.getType() == FLOAT) return new Value(-value.toDouble(), FLOAT);
             if (value.getType() == MATRIX) {
-                double[][] original = (double[][]) value.getValue();
+                double[][] original = value.toMatrix();
                 double[][] result = new double[original.length][original[0].length];
                 for (int i=0; i<result.length; i++) {
                     for (int j=0; j<result[0].length; j++) {
@@ -334,7 +334,7 @@ public class Interpreter implements InterpreterVisitor {
         Value value = node.getPrimary().accept(this);
         if (op == null) return value;
         if (op.getTokenType() == TRANSPOSE && value.getType() == MATRIX) {
-            double[][] matrix = (double[][]) value.getValue();
+            double[][] matrix = value.toMatrix();
             int rows = matrix.length;
             int cols = matrix[0].length;
             double[][] result = new double[cols][rows];
