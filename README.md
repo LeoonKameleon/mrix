@@ -1,9 +1,24 @@
 # mrix programming language
 
-Mrix is a dynamically-typed programming language that supports standard logic, functions, and native matrix operations.<br> This repository contains the source code for the interpreter written in Java.
+<p align="justify">
+Mrix is a dynamically-typed programming language which allows standard control structures, user-defined functions, and built-in support for matrix operations. This repository contains the source code for the interpreter written in Java.
+</p>
+
+## Code Example
+```mrix
+funct example(a, b) {
+    A = eye(a, b);
+    B = ones(b, a);
+    A[1, 1] = 3;
+    return A*B;
+}
+
+x = example(3, 4);
+print x;
+```
 
 ## Documentation
-WIP...
+Full documentation available [here](docs/index.md).
 
 ## Requirements
 * JDK 23
@@ -26,5 +41,5 @@ The output file will be generated at `target/mrix.jar`.
 
 You can run .mrix files using:
 ```bash
-java -jar target/mrix.jar <filename>.mrix
+java -jar target/mrix.jar /path/to/file.mrix
 ```

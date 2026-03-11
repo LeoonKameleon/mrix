@@ -1,8 +1,10 @@
-funct a(x, y) {
-    for i = x:y {
-        print i;
-    }
-    return 5;
+funct example(a, b) {
+    A = eye(a, b);
+    B = ones(b, a);
+    A[1, 1] = 3;
+    return A*B;
 }
 
-print a(-1, 100);
+x = example(3, 4);
+print(x);
+print [[1, 2], [3.3, 4]]-[[1, 2], [3, 4]];

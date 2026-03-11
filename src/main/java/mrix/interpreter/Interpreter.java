@@ -6,7 +6,6 @@ import mrix.exceptions.MrixRuntimeException;
 import mrix.exceptions.ReturnException;
 import mrix.nodes.*;
 import mrix.tokens.Token;
-import mrix.tokens.TokenType;
 import mrix.typechecker.DataType;
 
 import static mrix.tokens.TokenType.*;
@@ -87,6 +86,9 @@ public class Interpreter implements InterpreterVisitor {
                 if (left.getType() == INT && right.getType() == INT) {
                     return new Value((Integer) left.getValue() + (Integer) right.getValue(), INT);
                 }
+                if (left.getType() == MATRIX && right.getType() == MATRIX) {
+                    return applyOp(left, new Token(DOT_ADD, ".+", null, op.getLine()), right);
+                }
                 if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
                     return new Value((String) left.getValue() + (String) right.getValue(), DataType.STRING);
                 }
@@ -94,6 +96,9 @@ public class Interpreter implements InterpreterVisitor {
             case SUB:
                 if (left.getType() == INT && right.getType() == INT) {
                     return new Value((Integer) left.getValue() - (Integer) right.getValue(), INT);
+                }
+                if (left.getType() == MATRIX && right.getType() == MATRIX) {
+                    return applyOp(left, new Token(DOT_SUB, ".-", null, op.getLine()), right);
                 }
                 if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
                     return new Value(((String) left.getValue()).replaceFirst((String) right.getValue(), ""), DataType.STRING);
@@ -117,6 +122,9 @@ public class Interpreter implements InterpreterVisitor {
                         throw new MrixRuntimeException("Zero division", op.getLine());
                     }
                     return new Value((Integer)left.getValue() / (Integer)right.getValue(), INT);
+                }
+                if (left.getType() == MATRIX && right.getType() == MATRIX) {
+                    return applyOp(left, new Token(DOT_DIV, "./", null, op.getLine()), right);
                 }
                 if (toDouble(right) == 0) {
                     throw new MrixRuntimeException("Zero division", op.getLine());
