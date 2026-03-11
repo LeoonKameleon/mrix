@@ -3,9 +3,10 @@ package mrix.nodes;
 import mrix.interpreter.Value;
 import mrix.typechecker.DataType;
 
-public class BlockNode implements Node {
+public class BlockNode extends AbstractNode {
     private final Node instructions;
-    public BlockNode(Node instructions) {
+    public BlockNode(Node instructions, int line) {
+        super(line);
         this.instructions = instructions;
     }
     public DataType accept(NodeVisitor visitor) {

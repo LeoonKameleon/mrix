@@ -6,10 +6,11 @@ import mrix.typechecker.DataType;
 
 import java.util.List;
 
-public class FunctionCallNode implements Node{
+public class FunctionCallNode extends AbstractNode{
     private final Token id;
     private final List<Node> expressionList;
-    public FunctionCallNode(Token id, List<Node> expressionList) {
+    public FunctionCallNode(Token id, List<Node> expressionList, int line) {
+        super(line);
         this.id = id;
         this.expressionList = expressionList;
     }

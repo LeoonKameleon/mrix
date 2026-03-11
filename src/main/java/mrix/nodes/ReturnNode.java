@@ -3,9 +3,10 @@ package mrix.nodes;
 import mrix.interpreter.Value;
 import mrix.typechecker.DataType;
 
-public class ReturnNode implements Node {
+public class ReturnNode extends AbstractNode {
     private final Node expression;
-    public ReturnNode(Node expression) {
+    public ReturnNode(Node expression, int line) {
+        super(line);
         this.expression = expression;
     }
     public DataType accept(NodeVisitor visitor) {

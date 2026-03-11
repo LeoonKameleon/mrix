@@ -6,10 +6,11 @@ import mrix.interpreter.Value;
 import mrix.tokens.Token;
 import mrix.typechecker.DataType;
 
-public class VariableNode implements Node {
+public class VariableNode extends AbstractNode {
     private final Token id;
     private final List<Node> expressionList;
-    public VariableNode(Token id, List<Node> expressionList) {
+    public VariableNode(Token id, List<Node> expressionList, int line) {
+        super(line);
         this.id = id;
         this.expressionList = expressionList;
     }

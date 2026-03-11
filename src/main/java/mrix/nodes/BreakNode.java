@@ -3,7 +3,12 @@ package mrix.nodes;
 import mrix.interpreter.Value;
 import mrix.typechecker.DataType;
 
-public class BreakNode implements Node {
+public class BreakNode extends AbstractNode {
+
+    public BreakNode(int line) {
+        super(line);
+    }
+
     public DataType accept(NodeVisitor visitor) {
         return visitor.visitBreakNode(this);
     }

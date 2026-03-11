@@ -4,10 +4,11 @@ import mrix.interpreter.Value;
 import mrix.tokens.Token;
 import mrix.typechecker.DataType;
 
-public class PostfixNode implements Node {
+public class PostfixNode extends AbstractNode {
     private final Node primary;
     private final Token op;
-    public PostfixNode(Node primary, Token op) {
+    public PostfixNode(Node primary, Token op, int line) {
+        super(line);
         this.primary = primary;
         this.op = op;
     }

@@ -6,10 +6,11 @@ import mrix.typechecker.DataType;
 
 import java.util.List;
 
-public class CreateMatrixNode implements Node {
+public class CreateMatrixNode extends AbstractNode {
     private final Token fun;
     private final List<Node> expressionList;
-    public CreateMatrixNode(Token fun, List<Node> expressionList) {
+    public CreateMatrixNode(Token fun, List<Node> expressionList, int line) {
+        super(line);
         this.fun = fun;
         this.expressionList = expressionList;
     }

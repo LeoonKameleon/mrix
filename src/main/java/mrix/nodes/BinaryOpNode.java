@@ -4,11 +4,12 @@ import mrix.interpreter.Value;
 import mrix.tokens.Token;
 import mrix.typechecker.DataType;
 
-public class BinaryOpNode implements Node{
+public class BinaryOpNode extends AbstractNode{
     private final Node left;
     private final Node right;
     private final Token op;
-    public BinaryOpNode(Node left, Token op, Node right) {
+    public BinaryOpNode(Node left, Token op, Node right, int line) {
+        super(line);
         this.left = left;
         this.op = op;
         this.right = right;

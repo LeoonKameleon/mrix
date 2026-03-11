@@ -5,9 +5,10 @@ import java.util.List;
 import mrix.interpreter.Value;
 import mrix.typechecker.DataType;
 
-public class ProgramNode implements Node {
+public class ProgramNode extends AbstractNode {
     private final List<Node> instructions;
-    public ProgramNode(List<Node> instructions) {
+    public ProgramNode(List<Node> instructions, int line) {
+        super(line);
         this.instructions = instructions;
     }
     public DataType accept(NodeVisitor visitor) {

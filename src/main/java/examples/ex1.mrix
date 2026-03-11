@@ -1,20 +1,8 @@
-a = 5.12;
-
-if (a == 5.12) {
-    print "hejka";
-} else {
-    print "naaaah";
+funct a(x, y) {
+    for i = x:y {
+        print i*i*i;
+    }
+    return 5;
 }
 
-
-a = [[1, 2, 3],
-     [4, 5, 6],
-     [7, 8, 9]];
-
-a[0, 2] = 5;
-
-print 2*a;
-
-for x = 0:100000 {
-    print x;
-}
+print a(1, 100);

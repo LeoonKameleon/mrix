@@ -19,9 +19,10 @@ public class Interpreter implements InterpreterVisitor {
     private PrintWriter out = new PrintWriter(System.out);
 
     private double toDouble(Value v) {
-        if (v.getType() == INT) return ((Integer) v.getValue()).doubleValue();
-        if (v.getType() == BOOL) return (Boolean) v.getValue() ? 1.0 : 0.0;
-        return (Double) v.getValue();
+        Object val = v.getValue();
+        if (v.getType() == INT) return (int) val;
+        if (v.getType() == BOOL) return (boolean) val ? 1.0 : 0.0;
+        return (double) val;
     }
 
     private String formatValue(Value v) {

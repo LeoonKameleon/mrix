@@ -35,7 +35,7 @@ public class Parser {
             Node instruction = parseInstruction();
             instructions.add(instruction);
         }
-        return new ProgramNode(instructions);
+        return new ProgramNode(instructions, peek(0).getLine());
     }
 
     private Node parseInstruction() {
@@ -55,14 +55,14 @@ public class Parser {
         if (check(FUNCTION)) return parseFunction();
         if (check(LEFT_BRACE)) return parseBlock();
         if (check(BREAK)) {
-            consume();
+            Token t = consume();
             expect(SEMICOLON);
-            return new BreakNode();
+            return new BreakNode(t.getLine());
         }
         if (check(CONTINUE)) {
-            consume();
+            Token t = consume();
             expect(SEMICOLON);
-            return new ContinueNode();
+            return new ContinueNode(t.getLine());
         }
         if (check(ID) && peek(1).getTokenType() == LEFT_PAREN) {
             Node call = parseFunctionCall();
@@ -76,7 +76,7 @@ public class Parser {
 
     private Node parseIfStatement() {
         Node instruction2 = null;
-        consume();
+        Token t = consume();
         expect(LEFT_PAREN);
         Node expression = parseExpression();
         expect(RIGHT_PAREN);
@@ -85,40 +85,40 @@ public class Parser {
             consume();
             instruction2 = parseInstruction();
         }
-        return new IfNode(expression, instruction1, instruction2);
+        return new IfNode(expression, instruction1, instruction2, t.getLine());
     }
 
     private Node parseWhileStatement() {
-        consume();
+        Token t = consume();
         expect(LEFT_PAREN);
         Node expression = parseExpression();
         expect(RIGHT_PAREN);
         Node instruction = parseInstruction();
-        return new WhileNode(expression, instruction);
+        return new WhileNode(expression, instruction, t.getLine());
     }
 
     private Node parseForStatement() {
-        consume();
+        Token t = consume();
         Token id = consume();
         expect(ASSIGN);
         Node expression1 = parseExpression();
         expect(COLON);
         Node expression2 = parseExpression();
         Node instruction = parseInstruction();
-        return new ForNode(id, expression1, expression2, instruction);
+        return new ForNode(id, expression1, expression2, instruction, t.getLine());
     }
 
     private Node parseReturnStatement() {
-        consume();
-        if (check(SEMICOLON)) return new ReturnNode(null);
+        Token t = consume();
+        if (check(SEMICOLON)) return new ReturnNode(null, t.getLine());
         Node expression = parseExpression();
-        return new ReturnNode(expression);
+        return new ReturnNode(expression, t.getLine());
     }
 
     private Node parsePrintStatement() {
-        consume();
+        Token t = consume();
         List<Node> expressionList = parseExpressionList();
-        return new PrintNode(expressionList);
+        return new PrintNode(expressionList, t.getLine());
     }
 
     private Node parseFunction() {
@@ -128,14 +128,14 @@ public class Parser {
         List<Token> parameterList = parseParameterList();
         expect(RIGHT_PAREN);
         Node instruction = parseInstruction();
-        return new FunctionNode(id, parameterList, instruction);
+        return new FunctionNode(id, parameterList, instruction, id.getLine());
     }
 
     private Node parseBlock() {
-        consume();
+        Token t = consume();
         Node instructions = parseInstructions();
         expect(RIGHT_BRACE);
-        return new BlockNode(instructions);
+        return new BlockNode(instructions, t.getLine());
     }
 
     private Node parseFunctionCall() {
@@ -143,17 +143,17 @@ public class Parser {
         expect(LEFT_PAREN);
         List<Node> expressionList = parseExpressionList();
         expect(RIGHT_PAREN);
-        return new FunctionCallNode(id, expressionList);
+        return new FunctionCallNode(id, expressionList, id.getLine());
     }
 
     private Node parseAssignStatement() {
         Node variable = parseVariable();
         Token op = consume();
-        if (op.getTokenType() == ASSIGN) return new AssignNode(variable, ASSIGN, parseExpression());
-        if (op.getTokenType() == ADD_ASSIGN) return new AssignNode(variable, ADD_ASSIGN, parseExpression());
-        if (op.getTokenType() == SUB_ASSIGN) return new AssignNode(variable, SUB_ASSIGN, parseExpression());
-        if (op.getTokenType() == MUL_ASSIGN) return new AssignNode(variable, MUL_ASSIGN, parseExpression());
-        if (op.getTokenType() == DIV_ASSIGN) return new AssignNode(variable, DIV_ASSIGN, parseExpression());
+        if (op.getTokenType() == ASSIGN) return new AssignNode(variable, ASSIGN, parseExpression(), op.getLine());
+        if (op.getTokenType() == ADD_ASSIGN) return new AssignNode(variable, ADD_ASSIGN, parseExpression(), op.getLine());
+        if (op.getTokenType() == SUB_ASSIGN) return new AssignNode(variable, SUB_ASSIGN, parseExpression(), op.getLine());
+        if (op.getTokenType() == MUL_ASSIGN) return new AssignNode(variable, MUL_ASSIGN, parseExpression(), op.getLine());
+        if (op.getTokenType() == DIV_ASSIGN) return new AssignNode(variable, DIV_ASSIGN, parseExpression(), op.getLine());
         throw new RuntimeException("Expected assignment operator");
     }
 
@@ -165,12 +165,12 @@ public class Parser {
             expressionList = parseExpressionList();
             expect(RIGHT_BRACK);
         }
-        return new VariableNode(id, expressionList);
+        return new VariableNode(id, expressionList, id.getLine());
     }
 
     private Node parseExpression() {
         Node orExpression = parseOrExpression();
-        return new ExpressionNode(orExpression);
+        return new ExpressionNode(orExpression, orExpression.getLine());
     }
 
     private Node parseOrExpression() {
@@ -178,7 +178,7 @@ public class Parser {
         while (check(OR)) {
             Token op = consume();
             Node right = parseAndExpression();
-            left = new BinaryOpNode(left, op, right);
+            left = new BinaryOpNode(left, op, right, op.getLine());
         }
         return left;
     }
@@ -188,7 +188,7 @@ public class Parser {
         while (check(AND)) {
             Token op = consume();
             Node right = parseComparisonExpression();
-            left = new BinaryOpNode(left, op, right);
+            left = new BinaryOpNode(left, op, right, op.getLine());
         }
         return left;
     }
@@ -198,7 +198,7 @@ public class Parser {
         while (check(EQ) || check(NOT_EQ) || check(GREATER) || check(LESS) || check(GREATER_EQ) || check(LESS_EQ)) {
             Token op = consume();
             Node right = parseAdditiveExpression();
-            left = new BinaryOpNode(left, op, right);
+            left = new BinaryOpNode(left, op, right, op.getLine());
         }
         return left;
     }
@@ -208,7 +208,7 @@ public class Parser {
         while (check(ADD) || check(SUB) || check(DOT_ADD) || check(DOT_SUB)) {
             Token op = consume();
             Node right = parseMultiplicativeExpression();
-            left = new BinaryOpNode(left, op, right);
+            left = new BinaryOpNode(left, op, right, op.getLine());
         }
         return left;
     }
@@ -218,7 +218,7 @@ public class Parser {
         while (check(MUL) || check(DIV) || check(DOT_MUL) || check(DOT_DIV)) {
             Token op = consume();
             Node right = parseUnaryExpression();
-            left = new BinaryOpNode(left, op, right);
+            left = new BinaryOpNode(left, op, right, op.getLine());
         }
         return left;
     }
@@ -226,11 +226,11 @@ public class Parser {
     private Node parseUnaryExpression() {
         if (check(SUB)) {
             Token op = consume();
-            return new UnaryOpNode(op, parseUnaryExpression());
+            return new UnaryOpNode(op, parseUnaryExpression(), op.getLine());
         }
         if (check(NOT)) {
             Token op = consume();
-            return new UnaryOpNode(op, parseUnaryExpression());
+            return new UnaryOpNode(op, parseUnaryExpression(), op.getLine());
         }
         return parsePostfix();
     }
@@ -239,7 +239,7 @@ public class Parser {
         Node primary = parsePrimary();
         if (check(TRANSPOSE)) {
             Token op = consume();
-            return new PostfixNode(primary, op);
+            return new PostfixNode(primary, op, op.getLine());
         }
         return primary;
     }
@@ -247,7 +247,7 @@ public class Parser {
     private Node parsePrimary() {
         if (check(INT_NUM) || check(FLOAT_NUM) || check(STRING) || check(TRUE) || check(FALSE)) {
             Token value = consume();
-            return new PrimaryNode(value);
+            return new PrimaryNode(value, value.getLine());
         }
         if (check(LEFT_PAREN)) {
             consume();
@@ -277,15 +277,16 @@ public class Parser {
     private Node parseMatrix() {
         expect(LEFT_BRACK);
         Node result;
+        int line = peek(0).getLine();
         if (check(LEFT_BRACK)) {
             List<List<Node>> rows = new ArrayList<>();
             while (check(LEFT_BRACK)) {
                 rows.add(parseMatrixRow());
                 if (check(COMMA)) consume();
             }
-            result = new MatrixNode(rows);
+            result = new MatrixNode(rows, line);
         } else {
-            result = new FlatMatrixNode(parseExpressionList());
+            result = new FlatMatrixNode(parseExpressionList(), line);
         }
         expect(RIGHT_BRACK);
         return result;
@@ -303,7 +304,7 @@ public class Parser {
         expect(LEFT_PAREN);
         List<Node> expressionList = parseExpressionList();
         expect(RIGHT_PAREN);
-        return new CreateMatrixNode(fun, expressionList);
+        return new CreateMatrixNode(fun, expressionList, fun.getLine());
     }
 
     private List<Token> parseParameterList() {

@@ -6,11 +6,12 @@ import mrix.interpreter.Value;
 import mrix.tokens.Token;
 import mrix.typechecker.DataType;
 
-public class FunctionNode implements Node {
+public class FunctionNode extends AbstractNode {
     private final Token id;
     private final List<Token> parameterList;
     private final Node instruction;
-    public FunctionNode(Token id, List<Token> parameterList, Node instruction) {
+    public FunctionNode(Token id, List<Token> parameterList, Node instruction, int line) {
+        super(line);
         this.id = id;
         this.parameterList = parameterList;
         this.instruction = instruction;
