@@ -154,6 +154,7 @@ public class Parser {
         if (op.getTokenType() == SUB_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
         if (op.getTokenType() == MUL_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
         if (op.getTokenType() == DIV_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
+        if (op.getTokenType() == MOD_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
         throw new RuntimeException("Expected assignment operator");
     }
 
@@ -215,7 +216,7 @@ public class Parser {
 
     private Node parseMultiplicativeExpression() {
         Node left = parseUnaryExpression();
-        while (check(MUL) || check(DIV) || check(DOT_MUL) || check(DOT_DIV)) {
+        while (check(MUL) || check(DIV) || check(MOD) || check(DOT_MUL) || check(DOT_DIV)) {
             Token op = consume();
             Node right = parseUnaryExpression();
             left = new BinaryOpNode(left, op, right, op.getLine());

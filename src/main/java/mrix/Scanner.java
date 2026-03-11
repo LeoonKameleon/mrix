@@ -66,6 +66,7 @@ public class Scanner {
             case '+': addToken(check('=') ? ADD_ASSIGN : ADD); break;
             case '-': addToken(check('=') ? SUB_ASSIGN : SUB); break;
             case '*': addToken(check('=') ? MUL_ASSIGN : MUL); break;
+            case '%': addToken(check('=') ? MOD_ASSIGN : MOD); break;
             case '>': addToken(check('=') ? GREATER_EQ : GREATER); break;
             case '<': addToken(check('=') ? LESS_EQ : LESS); break;
             case '!': addToken(check('=') ? NOT_EQ : NOT); break;

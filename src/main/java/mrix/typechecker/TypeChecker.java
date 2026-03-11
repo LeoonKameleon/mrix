@@ -1,6 +1,7 @@
 package mrix.typechecker;
 
 import mrix.nodes.*;
+import mrix.stdlib.StandardLibrary;
 import mrix.tokens.Token;
 import mrix.tokens.TokenType;
 
@@ -13,6 +14,7 @@ import java.util.List;
 public class TypeChecker implements NodeVisitor {
     private SymbolTable table = new SymbolTable(null);
     private List<String> errors = new ArrayList<String>();
+    private StandardLibrary stdlib = new StandardLibrary();
     private int loopDepth;
 
     public DataType visitPrimaryNode(PrimaryNode node) {
@@ -53,6 +55,7 @@ public class TypeChecker implements NodeVisitor {
             case OR: 
                 if (leftType == BOOL && rightType == BOOL) return BOOL;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + op.getTokenType() + "': " + leftType + " and " + rightType);
+                return UNKNOWN;
             case EQ:
             case NOT_EQ:
             case GREATER:
@@ -63,6 +66,7 @@ public class TypeChecker implements NodeVisitor {
                 if ((leftType == INT && rightType == FLOAT) ||
                     (leftType == FLOAT && rightType == INT)) return BOOL;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + op.getTokenType() + "': " + leftType + " and " + rightType);
+                return UNKNOWN;
             case ADD:
             case SUB:
                 if (leftType == rightType) {
@@ -71,6 +75,7 @@ public class TypeChecker implements NodeVisitor {
                 if ((leftType == INT && rightType == FLOAT) ||
                     (leftType == FLOAT && rightType == INT)) return FLOAT;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + op.getTokenType() + "': " + leftType + " and " + rightType);
+                return UNKNOWN;
             case DIV:
                 if (leftType == rightType) {
                     if (leftType == INT) return INT;
@@ -80,6 +85,7 @@ public class TypeChecker implements NodeVisitor {
                     (leftType == FLOAT && rightType == INT)) return FLOAT;
                 if (leftType == MATRIX && (rightType == INT || rightType == FLOAT)) return MATRIX;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + DIV + "': " + leftType + " and " + rightType);
+                return UNKNOWN;
             case MUL:
                 if (leftType == rightType) {
                     if (leftType == INT) return INT;
@@ -91,14 +97,24 @@ public class TypeChecker implements NodeVisitor {
                 if (((leftType == INT || leftType == FLOAT) && rightType == MATRIX) ||
                     (leftType == MATRIX && (rightType == INT || rightType == FLOAT))) return MATRIX;
                 if ((leftType == INT && rightType == DataType.STRING) ||
-                    (leftType == DataType.STRING && rightType == INT)) return FLOAT;
+                    (leftType == DataType.STRING && rightType == INT)) return DataType.STRING;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + MUL + "': " + leftType + " and " + rightType);
+                return UNKNOWN;
+            case MOD:
+                if (leftType == rightType) {
+                    if (leftType == INT) return INT;
+                    if (leftType == FLOAT) return FLOAT;
+                }
+                if ((leftType == INT || leftType == FLOAT) && (rightType == INT || rightType == FLOAT)) return FLOAT;
+                errors.add("Line " + op.getLine() + ": Type mismatch for operator '%': " + leftType + " and " + rightType);
+                return UNKNOWN;
             case DOT_ADD:
             case DOT_SUB:
             case DOT_MUL:
             case DOT_DIV:
                 if (leftType == MATRIX && rightType == MATRIX) return MATRIX;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + op.getTokenType() + "': " + leftType + " and " + rightType);
+                return UNKNOWN;
             default:
                 errors.add("Line " + op.getLine() + ": Unknown operator '" + op.getTokenType() + "'");
                 return UNKNOWN;
@@ -284,6 +300,7 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitFunctionCallNode(FunctionCallNode node) {
         Token id = node.getId();
+        if (stdlib.has(id.getLexeme())) return UNKNOWN;
         VariableSymbol symbol = table.get(id.getLexeme());
         if (symbol == null) {
             errors.add("Line " + node.getId().getLine() + ": Undefined function '" + id.getLexeme() + "'");
