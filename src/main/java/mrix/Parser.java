@@ -149,11 +149,11 @@ public class Parser {
     private Node parseAssignStatement() {
         Node variable = parseVariable();
         Token op = consume();
-        if (op.getTokenType() == ASSIGN) return new AssignNode(variable, ASSIGN, parseExpression(), op.getLine());
-        if (op.getTokenType() == ADD_ASSIGN) return new AssignNode(variable, ADD_ASSIGN, parseExpression(), op.getLine());
-        if (op.getTokenType() == SUB_ASSIGN) return new AssignNode(variable, SUB_ASSIGN, parseExpression(), op.getLine());
-        if (op.getTokenType() == MUL_ASSIGN) return new AssignNode(variable, MUL_ASSIGN, parseExpression(), op.getLine());
-        if (op.getTokenType() == DIV_ASSIGN) return new AssignNode(variable, DIV_ASSIGN, parseExpression(), op.getLine());
+        if (op.getTokenType() == ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
+        if (op.getTokenType() == ADD_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
+        if (op.getTokenType() == SUB_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
+        if (op.getTokenType() == MUL_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
+        if (op.getTokenType() == DIV_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
         throw new RuntimeException("Expected assignment operator");
     }
 

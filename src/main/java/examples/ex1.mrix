@@ -1,8 +1,8 @@
 funct a(x, y) {
     for i = x:y {
-        print i*i*i;
+        print i;
     }
     return 5;
 }
 
-print a(1, 100);
+print a(-1, 100);

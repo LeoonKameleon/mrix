@@ -2,6 +2,7 @@ package mrix.interpreter;
 
 import mrix.exceptions.BreakException;
 import mrix.exceptions.ContinueException;
+import mrix.exceptions.MrixRuntimeException;
 import mrix.exceptions.ReturnException;
 import mrix.nodes.*;
 import mrix.tokens.Token;
@@ -49,6 +50,9 @@ public class Interpreter implements InterpreterVisitor {
     private Value getVariable(VariableNode variable) {
         String name = variable.getId().getLexeme();
         Value value = memory.get(name);
+        if (value == null) {
+            throw new MrixRuntimeException("Undefined variable: '" + name + "'", variable.getLine());
+        }
         if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
             double[][] matrix = (double[][]) value.getValue();
             if (matrix.length == 1) {
@@ -57,13 +61,16 @@ public class Interpreter implements InterpreterVisitor {
             }
             int row = (int) toDouble(variable.getExpressionList().get(0).accept(this));
             int col = (int) toDouble(variable.getExpressionList().get(1).accept(this));
+            if (row < 0 || row >= matrix.length || col < 0 || col >= matrix[0].length) {
+                throw new MrixRuntimeException("Matrix index out of bounds", variable.getId().getLine());
+            }
             return new Value(matrix[row][col], FLOAT);
         }
         return value;
     }
 
-    private Value applyOp(Value left, TokenType op, Value right) {
-        switch (op) {
+    private Value applyOp(Value left, Token op, Value right) {
+        switch (op.getTokenType()) {
             case EQ:
                 return new Value(left.getValue().equals(right.getValue()), BOOL);
             case NOT_EQ:
@@ -96,6 +103,9 @@ public class Interpreter implements InterpreterVisitor {
                 if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
                     double[][] matrix = (double[][]) left.getValue();
                     double scalar = toDouble(right);
+                    if (scalar == 0) {
+                        throw new MrixRuntimeException("Zero division", op.getLine());
+                    }
                     double[][] result = new double[matrix.length][matrix[0].length];
                     for (int i = 0; i < matrix.length; i++)
                         for (int j = 0; j < matrix[0].length; j++)
@@ -103,7 +113,13 @@ public class Interpreter implements InterpreterVisitor {
                     return new Value(result, MATRIX);
                 }
                 if (left.getType() == INT && right.getType() == INT) {
+                    if ((int) right.getValue() == 0) {
+                        throw new MrixRuntimeException("Zero division", op.getLine());
+                    }
                     return new Value((Integer)left.getValue() / (Integer)right.getValue(), INT);
+                }
+                if (toDouble(right) == 0) {
+                    throw new MrixRuntimeException("Zero division", op.getLine());
                 }
                 return new Value(toDouble(left) / toDouble(right), FLOAT);
             case MUL:
@@ -114,7 +130,7 @@ public class Interpreter implements InterpreterVisitor {
                     return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
                 }
                 if (left.getType() == INT && right.getType() == DataType.STRING) {
-                    return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
+                    return new Value(((String) right.getValue()).repeat((Integer) left.getValue()), DataType.STRING);
                 }
                 if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
                     double[][] matrix = (double[][]) left.getValue();
@@ -152,6 +168,8 @@ public class Interpreter implements InterpreterVisitor {
                             }
                         }
                         return new Value(result, MATRIX);
+                    } else {
+                        throw new MrixRuntimeException("Matrix multiplication size mismatch", op.getLine());
                     }
                 }
                 return new Value(toDouble(left) * toDouble(right), FLOAT);
@@ -161,21 +179,31 @@ public class Interpreter implements InterpreterVisitor {
             case DOT_DIV:
                 double[][] leftMatrix = (double[][]) left.getValue();
                 double[][] rightMatrix = (double[][]) right.getValue();
+                if (leftMatrix.length != rightMatrix.length ||
+                    leftMatrix[0].length != rightMatrix[0].length) {
+                    throw new MrixRuntimeException("Matrix size mismatch", op.getLine());
+                }
                 double[][] result = new double[leftMatrix.length][leftMatrix[0].length];
                 for (int i=0; i<leftMatrix.length; i++) {
                     for (int j=0; j<leftMatrix[0].length; j++) {
-                        switch (op) {
+                        switch (op.getTokenType()) {
                             case DOT_ADD: result[i][j] = leftMatrix[i][j] + rightMatrix[i][j]; break;
                             case DOT_SUB: result[i][j] = leftMatrix[i][j] - rightMatrix[i][j]; break;
                             case DOT_MUL: result[i][j] = leftMatrix[i][j] * rightMatrix[i][j]; break;
-                            case DOT_DIV: result[i][j] = leftMatrix[i][j] / rightMatrix[i][j]; break;
+                            case DOT_DIV: {
+                                if (rightMatrix[i][j] == 0) {
+                                    throw new MrixRuntimeException("Zero division", op.getLine());
+                                }
+                                result[i][j] = leftMatrix[i][j] / rightMatrix[i][j];
+                                break;
+                            } 
                             default: break;
                         }
                     }
                 }
                 return new Value(result, DataType.MATRIX);
             default:
-                return null;
+                throw new MrixRuntimeException("Unsupported operator: " + op.getTokenType(), op.getLine());
         }
     }
 
@@ -198,14 +226,18 @@ public class Interpreter implements InterpreterVisitor {
     public Value visitVariableNode(VariableNode node) {
         Value value = getVariable(node);
         if (value == null)
-            throw new RuntimeException("Line " + node.getId().getLine() + ": Undefined variable '" + node.getId().getLexeme() + "'");
+            throw new MrixRuntimeException("Undefined variable '" + node.getId().getLexeme() + "'", node.getLine());
         return value;
     }
 
     private void assignToVariable(VariableNode variable, Value value, boolean isNew) {
         String name = variable.getId().getLexeme();
         if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
-            double[][] matrix = (double[][]) memory.get(name).getValue();
+            Value existing = memory.get(name);
+            if (existing == null) {
+                throw new MrixRuntimeException("Undefined variable '" + name + "'", variable.getId().getLine());
+            }
+            double[][] matrix = (double[][]) existing.getValue();
             if (matrix.length == 1) {
                 int col = (int) toDouble(variable.getExpressionList().get(0).accept(this));
                 matrix[0][col] = toDouble(value);
@@ -223,24 +255,32 @@ public class Interpreter implements InterpreterVisitor {
     public Value visitAssignNode(AssignNode node) {
         Value value = node.getExpression().accept(this);
         VariableNode variable = (VariableNode) node.getVariable();
-        switch (node.getOp()) {
+        switch (node.getOp().getTokenType()) {
             case ASSIGN:
                 assignToVariable(variable, value, true);
                 break;
-            case ADD_ASSIGN:
-                assignToVariable(variable, applyOp(getVariable(variable), ADD, value), false);
+            case ADD_ASSIGN: {
+                Token op = new Token(ADD, "+", null, node.getOp().getLine());
+                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
                 break;
-            case SUB_ASSIGN:
-                assignToVariable(variable, applyOp(getVariable(variable), SUB, value), false);
+            }
+            case SUB_ASSIGN: {
+                Token op = new Token(SUB, "-", null, node.getOp().getLine());
+                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
                 break;
-            case MUL_ASSIGN:
-                assignToVariable(variable, applyOp(getVariable(variable), MUL, value), false);
+            }
+            case MUL_ASSIGN: {
+                Token op = new Token(MUL, "*", null, node.getOp().getLine());
+                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
                 break;
-            case DIV_ASSIGN:
-                assignToVariable(variable, applyOp(getVariable(variable), DIV, value), false);
+            }
+            case DIV_ASSIGN: {
+                Token op = new Token(DIV, "/", null, node.getOp().getLine());
+                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
                 break;
+            }
             default:
-                throw new RuntimeException("Line " + variable.getId().getLine() + " Error: Unknown assignment operator: " + node.getOp());
+                throw new MrixRuntimeException("Unknown assignment operator: '" + node.getOp().getLexeme()+ "'", node.getOp().getLine());
         }
         return null;
     }
@@ -260,7 +300,7 @@ public class Interpreter implements InterpreterVisitor {
         Value leftValue = node.getLeft().accept(this);
         Value rightValue = node.getRight().accept(this);
         if (leftValue == null || rightValue == null) return null;
-        return applyOp(leftValue, op.getTokenType(), rightValue);
+        return applyOp(leftValue, op, rightValue);
     }
 
     public Value visitUnaryOpNode(UnaryOpNode node) {
@@ -268,7 +308,7 @@ public class Interpreter implements InterpreterVisitor {
         Value value = node.getUnaryExpression().accept(this);
         if (op.getTokenType() == NOT) {
             if (value.getType() == BOOL) return Value.of(!(Boolean) value.getValue());
-            return null;
+            throw new MrixRuntimeException("Invalid type for NOT operator: " + value.getType(), op.getLine());
         }
         if (op.getTokenType() == SUB) {
             if (value.getType() == INT) return Value.of(-(Integer) value.getValue());
@@ -283,9 +323,9 @@ public class Interpreter implements InterpreterVisitor {
                 }
                 return new Value(result, MATRIX);
             }
-            return null;
+            throw new MrixRuntimeException("Invalid type for SUB operator: " + value.getType(), op.getLine());
         }
-        return null;
+        throw new MrixRuntimeException("Invalid operand for unary operator: " + op.getTokenType(), op.getLine());
     }
 
     public Value visitPostfixNode(PostfixNode node) {
@@ -304,13 +344,18 @@ public class Interpreter implements InterpreterVisitor {
             }
             return new Value(result, MATRIX);
         }
-        return null;
+        throw new MrixRuntimeException("Unknown postfix operator: '" + op.getLexeme() + "'", op.getLine());
     }
 
     public Value visitMatrixNode(MatrixNode node) {
         List<List<Node>> rows = node.getRows();
         int rowCount = rows.size();
         int colCount = rows.get(0).size();
+        for (List<Node> row : rows) {
+            if (row.size() != colCount) {
+                throw new MrixRuntimeException("All rows in a matrix must have the same length", node.getLine());
+            }
+        }
         double[][] result = new double[rowCount][colCount];
         for (int i=0; i<rowCount; i++) {
             for (int j=0; j<colCount; j++) {
@@ -344,10 +389,13 @@ public class Interpreter implements InterpreterVisitor {
             rows = (int) toDouble(expressionList.get(0).accept(this));
             cols = (int) toDouble(expressionList.get(1).accept(this));
         }
+        if (rows <= 0 || cols <= 0) {
+            throw new MrixRuntimeException("Negative matrix size", fun.getLine());
+        }
         double[][] result = new double[rows][cols];
         switch (fun.getTokenType()) {
             case EYE:
-                for (int i = 0; i < rows; i++)
+                for (int i = 0; i < Math.min(rows, cols); i++)
                     result[i][i] = 1.0;
                 break;
             case ONES:
@@ -365,6 +413,9 @@ public class Interpreter implements InterpreterVisitor {
 
     public Value visitIfNode(IfNode node) {
         Value value = node.getCondition().accept(this);
+        if (value.getType() != BOOL) {
+            throw new MrixRuntimeException("IF condition must be BOOL, got: " + value.getType(), node.getCondition().getLine());
+        }
         if ((Boolean) value.getValue()) node.getThenNode().accept(this);
         else if (node.getElseNode() != null) node.getElseNode().accept(this);
         return null;
@@ -372,7 +423,11 @@ public class Interpreter implements InterpreterVisitor {
 
     public Value visitWhileNode(WhileNode node) {
         memory = memory.push();
-        while ((Boolean) node.getCondition().accept(this).getValue()) {
+        Value value = node.getCondition().accept(this);
+        if (value.getType() != BOOL) {
+            throw new MrixRuntimeException("WHILE condition must be BOOL, got: " + value.getType(), node.getCondition().getLine());
+        }
+        while ((Boolean) value.getValue()) {
             try {
                 node.getThenNode().accept(this);
             } catch (BreakException e) {
@@ -468,14 +523,18 @@ public class Interpreter implements InterpreterVisitor {
         Token id = node.getId();
         Value value = memory.get(id.getLexeme());
         if (value == null) {
-            throw new RuntimeException("Line " + node.getId().getLine() + ": Undefined function '" + node.getId().getLexeme() + "'");
+            throw new MrixRuntimeException("Undefined function: '" + id.getLexeme() + "'", id.getLine());
         }
         if (value.getType() != DataType.FUNCTION) {
-            throw new RuntimeException("Line " + node.getId().getLine() + ": '" + node.getId().getLexeme() + "' is not a function");
+            throw new MrixRuntimeException("'" + id.getLexeme() + "' is not a function", id.getLine());
         }
         FunctionNode function = (FunctionNode) value.getValue();
         List<Token> params = function.getParameterList();
         List<Node> args = node.getExpressionList();
+
+        if (params.size() != args.size()) {
+            throw new MrixRuntimeException("Wrong number of arguments in function '" + id.getLexeme() + "'", id.getLine());
+        }
 
         memory = memory.push();
         for (int i=0; i<params.size(); i++) {
