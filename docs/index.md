@@ -71,9 +71,9 @@ Matrices in mrix are 0-indexed. They can be initialized in two ways:
 You can access or change specific elements using square brackets:
 ```mrix
 m = [[10, 20], [30, 40]];
-val = m[0][1];              // val == 20
-m[1][1] = 99;               // modify
-print m[1][1];              // 99
+val = m[0, 1];              // val == 20
+m[1, 1] = 99;               // modify
+print m[1, 1];              // 99
 
 a = [1, 2, 3];
 a[1] = 5;
