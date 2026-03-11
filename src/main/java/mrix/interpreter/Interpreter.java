@@ -18,13 +18,6 @@ public class Interpreter implements InterpreterVisitor {
     private Memory memory = new Memory(null);
     private PrintWriter out = new PrintWriter(System.out);
 
-    private double toDouble(Value v) {
-        Object val = v.getValue();
-        if (v.getType() == INT) return (int) val;
-        if (v.getType() == BOOL) return (boolean) val ? 1.0 : 0.0;
-        return (double) val;
-    }
-
     private String formatValue(Value v) {
         if (v.getType() == MATRIX) {
             double[][] matrix = (double[][]) v.getValue();
@@ -55,11 +48,11 @@ public class Interpreter implements InterpreterVisitor {
         if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
             double[][] matrix = (double[][]) value.getValue();
             if (matrix.length == 1) {
-                int col = (int) toDouble(variable.getExpressionList().get(0).accept(this));
+                int col = variable.getExpressionList().get(0).accept(this).toInt();
                 return new Value(matrix[0][col], FLOAT);
             }
-            int row = (int) toDouble(variable.getExpressionList().get(0).accept(this));
-            int col = (int) toDouble(variable.getExpressionList().get(1).accept(this));
+            int row = variable.getExpressionList().get(0).accept(this).toInt();
+            int col = variable.getExpressionList().get(1).accept(this).toInt();
             if (row < 0 || row >= matrix.length || col < 0 || col >= matrix[0].length) {
                 throw new MrixRuntimeException("Matrix index out of bounds", variable.getId().getLine());
             }
@@ -75,39 +68,39 @@ public class Interpreter implements InterpreterVisitor {
             case NOT_EQ:
                 return new Value(!left.getValue().equals(right.getValue()), BOOL);
             case GREATER:
-                return new Value(toDouble(left) > toDouble(right), BOOL);
+                return new Value(left.toDouble() > right.toDouble(), BOOL);
             case GREATER_EQ:
-                return new Value(toDouble(left) >= toDouble(right), BOOL);
+                return new Value(left.toDouble() >= right.toDouble(), BOOL);
             case LESS:
-                return new Value(toDouble(left) < toDouble(right), BOOL);
+                return new Value(left.toDouble() < right.toDouble(), BOOL);
             case LESS_EQ:
-                return new Value(toDouble(left) <= toDouble(right), BOOL);
+                return new Value(left.toDouble() <= right.toDouble(), BOOL);
             case ADD:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value((Integer) left.getValue() + (Integer) right.getValue(), INT);
+                    return new Value((left.toInt() + right.toInt()), INT);
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_ADD, ".+", null, op.getLine()), right);
                 }
                 if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
-                    return new Value((String) left.getValue() + (String) right.getValue(), DataType.STRING);
+                    return new Value(left.toString() + right.toString(), DataType.STRING);
                 }
-                return new Value(toDouble(left) + toDouble(right), FLOAT);
+                return new Value(left.toDouble() + right.toDouble(), FLOAT);
             case SUB:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value((Integer) left.getValue() - (Integer) right.getValue(), INT);
+                    return new Value(left.toInt() - right.toInt(), INT);
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_SUB, ".-", null, op.getLine()), right);
                 }
                 if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
-                    return new Value(((String) left.getValue()).replaceFirst((String) right.getValue(), ""), DataType.STRING);
+                    return new Value(left.toString().replaceFirst(right.toString(), ""), DataType.STRING);
                 }
-                return new Value(toDouble(left) - toDouble(right), FLOAT);
+                return new Value(left.toDouble() - right.toDouble(), FLOAT);
             case DIV:
                 if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
                     double[][] matrix = (double[][]) left.getValue();
-                    double scalar = toDouble(right);
+                    double scalar = right.toDouble();
                     if (scalar == 0) {
                         throw new MrixRuntimeException("Zero division", op.getLine());
                     }
@@ -118,31 +111,31 @@ public class Interpreter implements InterpreterVisitor {
                     return new Value(result, MATRIX);
                 }
                 if (left.getType() == INT && right.getType() == INT) {
-                    if ((int) right.getValue() == 0) {
+                    if (right.toInt() == 0) {
                         throw new MrixRuntimeException("Zero division", op.getLine());
                     }
-                    return new Value((Integer)left.getValue() / (Integer)right.getValue(), INT);
+                    return new Value(left.toInt() / right.toInt(), INT);
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_DIV, "./", null, op.getLine()), right);
                 }
-                if (toDouble(right) == 0) {
+                if (right.toDouble() == 0) {
                     throw new MrixRuntimeException("Zero division", op.getLine());
                 }
-                return new Value(toDouble(left) / toDouble(right), FLOAT);
+                return new Value(left.toDouble() / right.toDouble(), FLOAT);
             case MUL:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value((Integer)left.getValue() * (Integer)right.getValue(), INT);
+                    return new Value(left.toInt() * right.toInt(), INT);
                 }
                 if (left.getType() == DataType.STRING && right.getType() == INT) {
-                    return new Value(((String) left.getValue()).repeat((Integer) right.getValue()), DataType.STRING);
+                    return new Value(left.toString().repeat(right.toInt()), DataType.STRING);
                 }
                 if (left.getType() == INT && right.getType() == DataType.STRING) {
-                    return new Value(((String) right.getValue()).repeat((Integer) left.getValue()), DataType.STRING);
+                    return new Value(right.toString().repeat(left.toInt()), DataType.STRING);
                 }
                 if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
                     double[][] matrix = (double[][]) left.getValue();
-                    double scalar = toDouble(right);
+                    double scalar = right.toDouble();
                     double[][] result = new double[matrix.length][matrix[0].length];
                     for (int i=0; i<matrix.length; i++)
                         for (int j=0; j<matrix[0].length; j++)
@@ -151,7 +144,7 @@ public class Interpreter implements InterpreterVisitor {
                 }
                 if ((left.getType() == INT || left.getType() == FLOAT) && right.getType() == MATRIX) {
                     double[][] matrix = (double[][]) right.getValue();
-                    double scalar = toDouble(left);
+                    double scalar = left.toDouble();
                     double[][] result = new double[matrix.length][matrix[0].length];
                     for (int i=0; i<matrix.length; i++)
                         for (int j=0; j<matrix[0].length; j++)
@@ -180,7 +173,7 @@ public class Interpreter implements InterpreterVisitor {
                         throw new MrixRuntimeException("Matrix multiplication size mismatch", op.getLine());
                     }
                 }
-                return new Value(toDouble(left) * toDouble(right), FLOAT);
+                return new Value(left.toDouble() * right.toDouble(), FLOAT);
             case DOT_ADD:
             case DOT_SUB:
             case DOT_MUL:
@@ -247,12 +240,12 @@ public class Interpreter implements InterpreterVisitor {
             }
             double[][] matrix = (double[][]) existing.getValue();
             if (matrix.length == 1) {
-                int col = (int) toDouble(variable.getExpressionList().get(0).accept(this));
-                matrix[0][col] = toDouble(value);
+                int col = variable.getExpressionList().get(0).accept(this).toInt();
+                matrix[0][col] = value.toDouble();
             } else {
-                int row = (int) toDouble(variable.getExpressionList().get(0).accept(this));
-                int col = (int) toDouble(variable.getExpressionList().get(1).accept(this));
-                matrix[row][col] = toDouble(value);
+                int row = variable.getExpressionList().get(0).accept(this).toInt();
+                int col = variable.getExpressionList().get(1).accept(this).toInt();
+                matrix[row][col] = value.toDouble();
             }
         } else {
             if (isNew) memory.put(name, value);
@@ -297,13 +290,13 @@ public class Interpreter implements InterpreterVisitor {
         Token op = node.getOp();
         if (op.getTokenType() == AND) {
             Value left = node.getLeft().accept(this);
-            if (!(Boolean) left.getValue()) return Value.FALSE;
-            return Value.of((Boolean) node.getRight().accept(this).getValue());
+            if (!left.toBoolean()) return Value.FALSE;
+            return Value.of(node.getRight().accept(this).toBoolean());
         }
         if (op.getTokenType() == OR) {
             Value left = node.getLeft().accept(this);
-            if ((Boolean) left.getValue()) return Value.TRUE;
-            return Value.of((Boolean) node.getRight().accept(this).getValue());
+            if (left.toBoolean()) return Value.TRUE;
+            return Value.of(node.getRight().accept(this).toBoolean());
         }
         Value leftValue = node.getLeft().accept(this);
         Value rightValue = node.getRight().accept(this);
@@ -315,12 +308,12 @@ public class Interpreter implements InterpreterVisitor {
         Token op = node.getOp();
         Value value = node.getUnaryExpression().accept(this);
         if (op.getTokenType() == NOT) {
-            if (value.getType() == BOOL) return Value.of(!(Boolean) value.getValue());
+            if (value.getType() == BOOL) return Value.of(!value.toBoolean());
             throw new MrixRuntimeException("Invalid type for NOT operator: " + value.getType(), op.getLine());
         }
         if (op.getTokenType() == SUB) {
-            if (value.getType() == INT) return Value.of(-(Integer) value.getValue());
-            if (value.getType() == FLOAT) return new Value(-(double) value.getValue(), FLOAT);
+            if (value.getType() == INT) return Value.of(-value.toInt());
+            if (value.getType() == FLOAT) return new Value(-value.toDouble(), FLOAT);
             if (value.getType() == MATRIX) {
                 double[][] original = (double[][]) value.getValue();
                 double[][] result = new double[original.length][original[0].length];
@@ -368,7 +361,7 @@ public class Interpreter implements InterpreterVisitor {
         for (int i=0; i<rowCount; i++) {
             for (int j=0; j<colCount; j++) {
                 Value value = rows.get(i).get(j).accept(this);
-                result[i][j] = toDouble(value);
+                result[i][j] = value.toDouble();
             }
         }
         return new Value(result, MATRIX);
@@ -380,7 +373,7 @@ public class Interpreter implements InterpreterVisitor {
         int size = row.size();
         for (int i=0; i<size; i++) {
             Value value = row.get(i).accept(this);
-            result[0][i] = toDouble(value);
+            result[0][i] = value.toDouble();
         }
         return new Value(result, MATRIX);
     }
@@ -390,12 +383,12 @@ public class Interpreter implements InterpreterVisitor {
         Token fun = node.getFun();
         int rows, cols;
         if (expressionList.size() == 1) {
-            int n = (int) toDouble(expressionList.get(0).accept(this));
+            int n = expressionList.get(0).accept(this).toInt();
             rows = n;
             cols = n;
         } else {
-            rows = (int) toDouble(expressionList.get(0).accept(this));
-            cols = (int) toDouble(expressionList.get(1).accept(this));
+            rows = expressionList.get(0).accept(this).toInt();
+            cols = expressionList.get(1).accept(this).toInt();
         }
         if (rows <= 0 || cols <= 0) {
             throw new MrixRuntimeException("Negative matrix size", fun.getLine());
@@ -424,7 +417,7 @@ public class Interpreter implements InterpreterVisitor {
         if (value.getType() != BOOL) {
             throw new MrixRuntimeException("IF condition must be BOOL, got: " + value.getType(), node.getCondition().getLine());
         }
-        if ((Boolean) value.getValue()) node.getThenNode().accept(this);
+        if (value.toBoolean()) node.getThenNode().accept(this);
         else if (node.getElseNode() != null) node.getElseNode().accept(this);
         return null;
     }
@@ -435,7 +428,7 @@ public class Interpreter implements InterpreterVisitor {
         if (value.getType() != BOOL) {
             throw new MrixRuntimeException("WHILE condition must be BOOL, got: " + value.getType(), node.getCondition().getLine());
         }
-        while ((Boolean) value.getValue()) {
+        while (value.toBoolean()) {
             try {
                 node.getThenNode().accept(this);
             } catch (BreakException e) {
@@ -448,8 +441,8 @@ public class Interpreter implements InterpreterVisitor {
     }
 
     public Value visitForNode(ForNode node) {
-        int rangeStart = (int) toDouble(node.getRangeStart().accept(this));
-        int rangeEnd = (int) toDouble(node.getRangeEnd().accept(this));
+        int rangeStart = node.getRangeStart().accept(this).toInt();
+        int rangeEnd = node.getRangeEnd().accept(this).toInt();
         String id = node.getId().getLexeme();
         memory = memory.push();
         for (int i=rangeStart; i<=rangeEnd; i++) {
@@ -479,13 +472,13 @@ public class Interpreter implements InterpreterVisitor {
             Value val = expressionList.get(i).accept(this);
             switch (val.getType()) {
                 case INT:
-                    out.print((int) val.getValue());
+                    out.print(val.toInt());
                     break;
                 case FLOAT:
-                    out.print((double) val.getValue());
+                    out.print(val.toDouble());
                     break;
                 case STRING:
-                    out.print((String) val.getValue());
+                    out.print(val.toString());
                     break;
                 default:
                     out.print(formatValue(val));

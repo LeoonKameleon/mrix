@@ -1,6 +1,7 @@
 package mrix.interpreter;
 
 import mrix.typechecker.DataType;
+import static mrix.typechecker.DataType.*;
 
 public class Value {
     private Object value;
@@ -41,5 +42,24 @@ public class Value {
 
     public void setValue(Object value) {
         this.value = value;
+    }
+
+    public double toDouble() {
+        if (type == INT) return (int) value;
+        if (type == BOOL) return (boolean) value ? 1.0 : 0.0;
+        return (double) value;
+    }
+
+    public int toInt() {
+        if (type == BOOL) return (boolean) value ? 1 : 0;
+        return (int) value;
+    }
+
+    public String toString() {
+        return (String) value;
+    }
+
+    public boolean toBoolean() {
+        return (boolean) value;
     }
 }
