@@ -53,6 +53,7 @@ print "alpha", "beta";
 
 ## 5. Matrix Structures and Operations
 ### Matrices
+#### Initialization
 Matrices in mrix are 0-indexed. They can be initialized in two ways:
 + **FlatMatrix (1D)**:
   
@@ -65,6 +66,19 @@ Matrices in mrix are 0-indexed. They can be initialized in two ways:
     ```mrix
     B = [[1, 2, 3], [4, 5, 6]];
     ```
+
+#### Accessing elements
+You can access or change specific elements using square brackets:
+```mrix
+m = [[10, 20], [30, 40]];
+val = m[0][1];              // val == 20
+m[1][1] = 99;               // modify
+print m[1][1];              // 99
+
+a = [1, 2, 3];
+a[1] = 5;
+print a;                    // a == [1, 5, 3]
+```
 
 ### Operations
 <p align="justify">
@@ -88,13 +102,32 @@ Mrix supports standard algebraic operations as well as element-wise operations b
 + `string - string` - Remove the first occurence of the second string.
 + `string * int` - Repeat the string N times.
 
-## 6. Matrix generators
+## 6. Logic and Comparison
+These operators evaluate expressions and return a **BOOL** value:
+
+### Comparison operators
+Used to compare numerical values (**INT**, **FLOAT**).
++ `==` (Equal to) - Returns `true` if values are identical.
++ `!=` (Not equal to) - Returns `true` if values differ.
++ `>` (Greater than) - Returns `true` if the left operand is larger.
++ `<` (Less than) - Returns `true` if the left operand is smaller.
++ `>=` (Greater than or equal to) - Returns `true` if the left is larger or equal.
++ `<=` (Less than or equal to) - Returns `true` if the left is smaller or equal.
+
+### Logical operators
+Used to compare boolean values (**BOOL**).
++ `and` - Returns true only if both operands evaluate to true.
++ `or` - Returns true if at least one of operands evaluates to true.
++ `not` (or `!`) - A unary operator that inverts the boolean value.
+
+
+## 7. Matrix generators
 Built-in instructions for quick matrix creation:
 + `eye(n)` or `eye(r, c)` - Identity matrix.
 + `zeros(n)` or `zeros(r, c)` - Matrix filled with `0.0`.
 + `ones(n)` or `ones(r, c)` - Matrix filled with `1.0`.
 
-## 7. Control flow
+## 8. Control flow
 ### Conditional statements
 ```mrix
 if (condition) {
@@ -118,7 +151,7 @@ for i = 0:14 {
 }
 ```
 
-## 8. Functions
+## 9. Functions
 Functions in mrix support recursion and returning values. They are defined with `funct` keyword:
 ```mrix
 funct add(a, b) {
