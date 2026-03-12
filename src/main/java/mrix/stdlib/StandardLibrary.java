@@ -6,8 +6,8 @@ import java.util.function.Function;
 
 import mrix.exceptions.StandardLibraryException;
 import mrix.interpreter.Value;
-import mrix.typechecker.DataType;
 import static mrix.typechecker.DataType.*;
+import mrix.typechecker.DataType;
 
 public class StandardLibrary {
     private HashMap<String, Function<List<Value>, Value>> functions = new HashMap<>();
@@ -34,7 +34,7 @@ public class StandardLibrary {
             if (args.size() != 1) throw new StandardLibraryException("abs() expects 1 argument, but got " + args.size());
             Value arg = args.get(0);
             if (arg.getType() == INT) {
-                return new Value(Math.abs(args.get(0).toInt()), INT);
+                return new Value(Math.abs(args.get(0).toLong()), INT);
             }
             if (arg.getType() == FLOAT) {
                 return new Value(Math.abs(args.get(0).toDouble()), FLOAT);
@@ -96,7 +96,7 @@ public class StandardLibrary {
                     result += arg.toDouble();
                 }
             }
-            if (allInt) return new Value((int) result, INT);
+            if (allInt) return new Value((long) result, INT);
             return new Value(result, FLOAT);
         });
         functions.put("min", args -> {
@@ -116,7 +116,7 @@ public class StandardLibrary {
                     if (arg.toDouble() < result) result = arg.toDouble();
                 }
             }
-            if (allInt) return new Value((int) result, INT);
+            if (allInt) return new Value((long) result, INT);
             return new Value(result, FLOAT);
         });
         functions.put("max", args -> {
@@ -136,7 +136,51 @@ public class StandardLibrary {
                     if (arg.toDouble() > result) result = arg.toDouble();
                 }
             }
-            if (allInt) return new Value((int) result, INT);
+            if (allInt) return new Value((long) result, INT);
+            return new Value(result, FLOAT);
+        });
+        functions.put("mean", args -> {
+            if (args.isEmpty()) throw new StandardLibraryException("mean() expects at least 1 argument");
+            double sum = 0;
+            int count = 0;
+            for (Value arg : args) {
+                if (arg.getType() == STRING || arg.getType() == FUNCTION)
+                    throw new StandardLibraryException("sum() does not support " + arg.getType() + " type");
+                if (arg.getType() == MATRIX) {
+                    for (double[] row : arg.toMatrix())
+                        for (double val : row) {
+                            sum += val;
+                            count++;
+                        } 
+                } else {
+                    sum += arg.toDouble();
+                    count++;
+                }
+            }
+            double result = sum/count;
+            if (result == (long) result) return new Value((long) result, INT);
+            return new Value(result, FLOAT);
+        });
+        functions.put("type", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("type() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            return new Value(arg.getType().name(), STRING);
+        });
+        functions.put("pow", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("pow() expects 2 arguments");
+            Value baseVal = args.get(0);
+            Value expVal = args.get(1);
+            
+            DataType baseType = baseVal.getType();
+            DataType expType = expVal.getType();
+            
+            if (baseType == STRING || baseType == MATRIX || baseType == FUNCTION ||
+                expType == STRING || expType == MATRIX || expType == FUNCTION) {
+                throw new StandardLibraryException("pow() does not support " + baseType + " and " + expType);
+            }
+            
+            double result = Math.pow(baseVal.toDouble(), expVal.toDouble());
+            if (result == (long) result) return new Value((long) result, INT);
             return new Value(result, FLOAT);
         });
     }

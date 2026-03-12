@@ -81,7 +81,7 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(left.toDouble() <= right.toDouble(), BOOL);
             case ADD:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value(left.toInt() + right.toInt(), INT);
+                    return new Value(left.toLong() + right.toLong(), INT);
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_ADD, ".+", null, op.getLine()), right);
@@ -92,7 +92,7 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(left.toDouble() + right.toDouble(), FLOAT);
             case SUB:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value(left.toInt() - right.toInt(), INT);
+                    return new Value(left.toLong() - right.toLong(), INT);
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_SUB, ".-", null, op.getLine()), right);
@@ -115,10 +115,10 @@ public class Interpreter implements InterpreterVisitor {
                     return new Value(result, MATRIX);
                 }
                 if (left.getType() == INT && right.getType() == INT) {
-                    if (right.toInt() == 0) {
+                    if (right.toLong() == 0) {
                         throw new MrixRuntimeException("Zero division", op.getLine());
                     }
-                    return new Value(left.toInt() / right.toInt(), INT);
+                    return new Value(left.toLong() / right.toLong(), INT);
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_DIV, "./", null, op.getLine()), right);
@@ -129,7 +129,7 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(left.toDouble() / right.toDouble(), FLOAT);
             case MUL:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value(left.toInt() * right.toInt(), INT);
+                    return new Value(left.toLong() * right.toLong(), INT);
                 }
                 if (left.getType() == DataType.STRING && right.getType() == INT) {
                     return new Value(left.toString().repeat(right.toInt()), DataType.STRING);
@@ -180,10 +180,10 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(left.toDouble() * right.toDouble(), FLOAT);
             case MOD:
                 if (left.getType() == INT && right.getType() == INT) {
-                    if (right.toInt() == 0) {
+                    if (right.toLong() == 0) {
                         throw new MrixRuntimeException("Zero division", op.getLine());
                     }
-                    return new Value(left.toInt() % right.toInt(), INT);
+                    return new Value(left.toLong() % right.toLong(), INT);
                 }
                 if (right.toDouble() == 0) {
                     throw new MrixRuntimeException("Zero division", op.getLine());
@@ -228,7 +228,7 @@ public class Interpreter implements InterpreterVisitor {
         Token token = node.getValue();
         Value result;
         switch (token.getTokenType()) {
-            case INT_NUM: result = Value.of(Integer.parseInt(token.getLexeme())); break;
+            case INT_NUM: result = Value.of(Long.parseLong(token.getLexeme())); break;
             case FLOAT_NUM: result = new Value(Double.parseDouble(token.getLexeme()), FLOAT); break;
             case STRING: result = new Value(token.getLexeme(), DataType.STRING); break;
             case TRUE: result = Value.TRUE; break;
@@ -331,7 +331,7 @@ public class Interpreter implements InterpreterVisitor {
             throw new MrixRuntimeException("Invalid type for NOT operator: " + value.getType(), op.getLine());
         }
         if (op.getTokenType() == SUB) {
-            if (value.getType() == INT) return Value.of(-value.toInt());
+            if (value.getType() == INT) return Value.of(-value.toLong());
             if (value.getType() == FLOAT) return new Value(-value.toDouble(), FLOAT);
             if (value.getType() == MATRIX) {
                 double[][] original = value.toMatrix();
@@ -491,7 +491,7 @@ public class Interpreter implements InterpreterVisitor {
             Value val = expressionList.get(i).accept(this);
             switch (val.getType()) {
                 case INT:
-                    out.print(val.toInt());
+                    out.print(val.toLong());
                     break;
                 case FLOAT:
                     out.print(val.toDouble());

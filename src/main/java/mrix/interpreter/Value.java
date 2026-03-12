@@ -11,10 +11,13 @@ public class Value {
     public static final Value FALSE = new Value(Boolean.FALSE, DataType.BOOL);
     public static final Value NULL = new Value(null, DataType.UNKNOWN);
     
-    private static final Value[] INT_CACHE = new Value[2048];
+    private static final int CACHE_LOW = -4096;
+    private static final int CACHE_HIGH = 4095;
+    private static final Value[] LONG_CACHE = new Value[(CACHE_HIGH - CACHE_LOW) + 1];
+
     static {
-        for (int i=0; i <2048; i++) {
-            INT_CACHE[i] = new Value(i - 1024, DataType.INT);
+        for (int i = 0; i < LONG_CACHE.length; i++) {
+            LONG_CACHE[i] = new Value((long) (i + CACHE_LOW), DataType.INT);
         }
     }
 
@@ -27,9 +30,11 @@ public class Value {
         return b ? TRUE : FALSE;
     }
 
-    public static Value of(int i) {
-        if (i >= -1024 && i <= 1023) return INT_CACHE[i + 1024];
-        return new Value(i, DataType.INT);
+    public static Value of(long l) {
+        if (l >= CACHE_LOW && l <= CACHE_HIGH) {
+            return LONG_CACHE[(int) (l - CACHE_LOW)];
+        }
+        return new Value(l, DataType.INT);
     }
 
     public Object getValue() {
@@ -45,14 +50,19 @@ public class Value {
     }
 
     public double toDouble() {
-        if (type == INT) return (int) value;
+        if (type == INT) return ((Number) value).doubleValue();
         if (type == BOOL) return (boolean) value ? 1.0 : 0.0;
         return (double) value;
     }
 
     public int toInt() {
         if (type == BOOL) return (boolean) value ? 1 : 0;
-        return (int) value;
+        return ((Number) value).intValue();
+    }
+
+    public long toLong() {
+        if (type == BOOL) return (boolean) value ? 1L : 0L;
+        return ((Number) value).longValue();
     }
 
     public String toString() {

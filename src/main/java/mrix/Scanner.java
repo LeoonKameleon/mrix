@@ -117,7 +117,7 @@ public class Scanner {
         }
         while (isDigit(peek()) && !(position >= source.length())) position++;
         if (integer) {
-            addToken(INT_NUM, Integer.parseInt(source.substring(start, position)));
+            addToken(INT_NUM, Long.parseLong(source.substring(start, position)));
         } else {
             addToken(FLOAT_NUM, Float.parseFloat(source.substring(start, position)));
         }
