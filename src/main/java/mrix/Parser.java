@@ -265,7 +265,7 @@ public class Parser {
             if (peek(1).getTokenType() == LEFT_PAREN) return parseFunctionCall();
             return parseVariable();
         }
-        throw new RuntimeException("Unexpected token: " + tokens.get(position).getTokenType());
+        throw new RuntimeException("Line " + tokens.get(position).getLine() + " Parse error: Unexpected token: " + tokens.get(position).getTokenType());
     }
 
     private List<Node> parseExpressionList() {
