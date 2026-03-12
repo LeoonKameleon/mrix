@@ -20,5 +20,5 @@ print type(5 == 5);
 print type("Klaudia <3");
 print 3000000000;
 print size(a);
-print len(a);
-print at("Hejka", 0);
+print len(x);
+print at("Hejka", 0) == "H";
