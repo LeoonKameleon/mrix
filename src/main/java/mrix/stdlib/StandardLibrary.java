@@ -28,7 +28,9 @@ public class StandardLibrary {
             if (value.getType() == STRING || value.getType() == BOOL) {
                 throw new StandardLibraryException("sqrt() does not support " + value.getType() + " type");
             }
-            return new Value(Math.sqrt(value.toDouble()), FLOAT);
+            double result = Math.sqrt(value.toDouble());
+            if (result == (long) result) return new Value((long) result, INT);
+            return new Value(result, FLOAT);
         });
         functions.put("abs", args -> {
             if (args.size() != 1) throw new StandardLibraryException("abs() expects 1 argument, but got " + args.size());
@@ -182,6 +184,27 @@ public class StandardLibrary {
             double result = Math.pow(baseVal.toDouble(), expVal.toDouble());
             if (result == (long) result) return new Value((long) result, INT);
             return new Value(result, FLOAT);
+        });
+        functions.put("len", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("len() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == MATRIX) {
+                double[][] m = arg.toMatrix();
+                return new Value((long) m.length * m[0].length, INT);
+            }
+            if (arg.getType() == STRING) {
+                return new Value(arg.toString().length(), INT);
+            }
+            throw new StandardLibraryException("len() does not support " + arg.getType() + " type");
+        });
+        functions.put("at", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("at() expects 2 arguments");
+            Value string = args.get(0);
+            Value index = args.get(1);
+            if (string.getType() == STRING && index.getType() == INT) {
+                return new Value(string.toString().substring(index.toInt(), index.toInt()+1), STRING);
+            }
+            throw new StandardLibraryException("pow() does not support " + string.getType() + " and " + index.getType());
         });
     }
 

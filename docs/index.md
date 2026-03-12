@@ -7,7 +7,7 @@ Mrix is a dynamically-typed, interpreted language designed for matrix manipulati
 
 ## 2. Data Types
 Mrix supports following data types:
-+ **INT** - 32-bit signed integer.
++ **INT** - 64-bit signed integer.
   + example: `int_value = 5;`
 
 + **FLOAT** - 64-bit floating point.
@@ -27,7 +27,7 @@ Mrix supports following data types:
 
 ## 3. Variables and Syntax
 Variables are declared by a direct assignment. 
-+ Shorthand assignment is supported (`+=`, `-=`. `*=`, `/=`).
++ Shorthand assignment is supported (`+=`, `-=`. `*=`, `/=`, `%=`).
 + Mrix language uses block scoping defined by `{}`. 
 + Every statement must end with a semicolon `;`.
 
@@ -91,6 +91,7 @@ Mrix supports standard algebraic operations as well as element-wise operations b
 | `-` | Subtraction | N/A | Element-wise subtraction |
 | `*` | Multiplication | Scaling | Dot product |
 | `/` | Division | Scaling | Element-wise division |
+| `%` | Modulo | N/A | N/A |
 | `.*` | N/A | N/A | Element-wise multiplication |
 | `'` | N/A | N/A | Transposition |
 
@@ -107,12 +108,12 @@ These operators evaluate expressions and return a **BOOL** value:
 
 ### Comparison operators
 Used to compare numerical values (**INT**, **FLOAT**).
-+ `==` (Equal to) - Returns `true` if values are identical.
-+ `!=` (Not equal to) - Returns `true` if values differ.
-+ `>` (Greater than) - Returns `true` if the left operand is larger.
-+ `<` (Less than) - Returns `true` if the left operand is smaller.
-+ `>=` (Greater than or equal to) - Returns `true` if the left is larger or equal.
-+ `<=` (Less than or equal to) - Returns `true` if the left is smaller or equal.
++ `==` - Returns `true` if values are identical.
++ `!=` - Returns `true` if values are different.
++ `>` - Returns `true` if the left operand is larger.
++ `<` - Returns `true` if the left operand is smaller.
++ `>=` - Returns `true` if the left operand is larger or equal.
++ `<=` - Returns `true` if the left operand is smaller or equal.
 
 ### Logical operators
 Used to compare boolean values (**BOOL**).
@@ -160,3 +161,26 @@ funct add(a, b) {
 
 a = add(1, 4);
 ```
+
+## Standard Library of Built-In Functions
+
+### Math & Statistics
+| Function | Accepted types | Description | Return type |
+| :---: | :---: | :---: | :---: |
+| `abs(x)` | **INT**, **FLOAT**, **MATRIX** | Returns absolute value of `x` | **INT**, **FLOAT** or **MATRIX** |
+| `sqrt(x)` | **INT**, **FLOAT**, **MATRIX** | Returns the square root of `x` | **INT**, **FLOAT** or **MATRIX** |
+| `pow(base, exp)` | **INT**, **FLOAT** | Returns the value of `base` raised to the power of `exp` | **INT** or **FLOAT** |
+| `sum(...)` | **INT**, **FLOAT**, **MATRIX** | Returns the sum of all given numerical arguments | **INT** or **FLOAT** |
+| `min(...)` | **INT**, **FLOAT**, **MATRIX** | Returns the minimum value of all given numerical arguments | **INT** or **FLOAT** |
+| `max(...)` | **INT**, **FLOAT**, **MATRIX** | Returns the maximum value of all given numerical arguments | **INT** or **FLOAT** |
+| `mean(...)` | **INT**, **FLOAT**, **MATRIX** | Returns the arithmetic mean of all given numerical arguments | **INT** or **FLOAT** |
+
+### Utilities
+| Function | Accepted types | Description | Return type |
+| :---: | :---: | :---: | :---: |
+| `size(A)` | **MATRIX** | Returns the size (`[rows, cols]`) of `A` | **MATRIX** |
+| `rows(A)` | **MATRIX** | Returns the number of rows in `A` | **INT** |
+| `cols(A)` | **MATRIX** | Returns the number of cols in `A` | **INT** |
+| `len(x)` | **STRING**, **MATRIX** | Returns the number of characters in a string or the total number of elements in a matrix | **INT** |
+| `at(x, i)` | **STRING** | Returns the character at index `i` | **STRING**|
+| `type(x)` | ***ANY*** | Returns the type name of `x` | **STRING** |
