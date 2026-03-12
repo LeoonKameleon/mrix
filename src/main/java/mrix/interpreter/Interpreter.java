@@ -4,6 +4,7 @@ import mrix.exceptions.BreakException;
 import mrix.exceptions.ContinueException;
 import mrix.exceptions.MrixRuntimeException;
 import mrix.exceptions.ReturnException;
+import mrix.exceptions.StandardLibraryException;
 import mrix.nodes.*;
 import mrix.stdlib.StandardLibrary;
 import mrix.tokens.Token;
@@ -545,8 +546,11 @@ public class Interpreter implements InterpreterVisitor {
             for (Node arg : node.getExpressionList()) {
                 args.add(arg.accept(this));
             }
-            System.out.println("has abs: " + stdlib.has("abs"));
-            return stdlib.call(id.getLexeme(), args);
+            try {
+                return stdlib.call(id.getLexeme(), args);
+            } catch (StandardLibraryException e) {
+                throw new MrixRuntimeException(e.getMessage(), id.getLine());
+            }
         }
         Value value = memory.get(id.getLexeme());
         if (value == null) {
