@@ -5,6 +5,7 @@ import mrix.exceptions.ContinueException;
 import mrix.exceptions.MrixRuntimeException;
 import mrix.exceptions.ReturnException;
 import mrix.nodes.*;
+import mrix.stdlib.StandardLibrary;
 import mrix.tokens.Token;
 import mrix.typechecker.DataType;
 
@@ -12,11 +13,13 @@ import static mrix.tokens.TokenType.*;
 import static mrix.typechecker.DataType.*;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements InterpreterVisitor {
     private Memory memory = new Memory(null);
     private PrintWriter out = new PrintWriter(System.out);
+    private StandardLibrary stdlib = new StandardLibrary();
 
     private String formatValue(Value v) {
         if (v.getType() == MATRIX) {
@@ -174,6 +177,17 @@ public class Interpreter implements InterpreterVisitor {
                     }
                 }
                 return new Value(left.toDouble() * right.toDouble(), FLOAT);
+            case MOD:
+                if (left.getType() == INT && right.getType() == INT) {
+                    if (right.toInt() == 0) {
+                        throw new MrixRuntimeException("Zero division", op.getLine());
+                    }
+                    return new Value(left.toInt() % right.toInt(), INT);
+                }
+                if (right.toDouble() == 0) {
+                    throw new MrixRuntimeException("Zero division", op.getLine());
+                }
+                return new Value(left.toDouble() % right.toDouble(), FLOAT);
             case DOT_ADD:
             case DOT_SUB:
             case DOT_MUL:
@@ -279,6 +293,10 @@ public class Interpreter implements InterpreterVisitor {
                 Token op = new Token(DIV, "/", null, node.getOp().getLine());
                 assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
                 break;
+            }
+            case MOD_ASSIGN: {
+                Token op = new Token(MOD, "/", null, node.getOp().getLine());
+                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
             }
             default:
                 throw new MrixRuntimeException("Unknown assignment operator: '" + node.getOp().getLexeme()+ "'", node.getOp().getLine());
@@ -522,6 +540,14 @@ public class Interpreter implements InterpreterVisitor {
 
     public Value visitFunctionCallNode(FunctionCallNode node) {
         Token id = node.getId();
+        if (stdlib.has(id.getLexeme())) {
+            List<Value> args = new ArrayList<>();
+            for (Node arg : node.getExpressionList()) {
+                args.add(arg.accept(this));
+            }
+            System.out.println("has abs: " + stdlib.has("abs"));
+            return stdlib.call(id.getLexeme(), args);
+        }
         Value value = memory.get(id.getLexeme());
         if (value == null) {
             throw new MrixRuntimeException("Undefined function: '" + id.getLexeme() + "'", id.getLine());

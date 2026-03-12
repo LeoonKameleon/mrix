@@ -80,6 +80,7 @@ public class TypeChecker implements NodeVisitor {
                 if (leftType == rightType) {
                     if (leftType == INT) return INT;
                     if (leftType == FLOAT) return FLOAT;
+                    if (leftType == MATRIX) return MATRIX;
                 }
                 if ((leftType == INT && rightType == FLOAT) ||
                     (leftType == FLOAT && rightType == INT)) return FLOAT;
