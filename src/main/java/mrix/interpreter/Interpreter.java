@@ -228,9 +228,9 @@ public class Interpreter implements InterpreterVisitor {
         Token token = node.getValue();
         Value result;
         switch (token.getTokenType()) {
-            case INT_NUM: result = Value.of(Long.parseLong(token.getLexeme())); break;
-            case FLOAT_NUM: result = new Value(Double.parseDouble(token.getLexeme()), FLOAT); break;
-            case STRING: result = new Value(token.getLexeme(), DataType.STRING); break;
+            case INT_NUM: result = Value.of((long) token.getLiteral()); break;
+            case FLOAT_NUM: result = new Value((double) token.getLiteral(), FLOAT); break;
+            case STRING: result = new Value(token.getLiteral(), DataType.STRING); break;
             case TRUE: result = Value.TRUE; break;
             case FALSE: result = Value.FALSE; break;
             default: return Value.NULL; 

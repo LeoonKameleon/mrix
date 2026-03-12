@@ -119,7 +119,7 @@ public class Scanner {
         if (integer) {
             addToken(INT_NUM, Long.parseLong(source.substring(start, position)));
         } else {
-            addToken(FLOAT_NUM, Float.parseFloat(source.substring(start, position)));
+            addToken(FLOAT_NUM, Double.parseDouble(source.substring(start, position)));
         }
     }
 
