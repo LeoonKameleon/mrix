@@ -141,7 +141,10 @@ public class Parser {
     private Node parseFunctionCall() {
         Token id = consume();
         expect(LEFT_PAREN);
-        List<Node> expressionList = parseExpressionList();
+        List<Node> expressionList = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            expressionList = parseExpressionList();
+        }
         expect(RIGHT_PAREN);
         return new FunctionCallNode(id, expressionList, id.getLine());
     }
