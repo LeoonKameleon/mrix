@@ -11,7 +11,7 @@ import mrix.tokens.Token;
 import mrix.tokens.TokenType;
 
 public class Scanner {
-    private List<Token> tokens = new ArrayList<Token>();
+    private final List<Token> tokens = new ArrayList<Token>();
     private final String source;
     private int start = 0;
     private int position = 0;

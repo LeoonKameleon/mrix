@@ -8,10 +8,6 @@ public class VariableSymbol {
         this.type = type;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public DataType getType() {
         return type;
     }

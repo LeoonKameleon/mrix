@@ -3,8 +3,8 @@ package mrix.interpreter;
 import java.util.HashMap;
 
 public class Memory {
-    private Memory parent;
-    private HashMap<String, Value> memory;
+    private final Memory parent;
+    private final HashMap<String, Value> memory;
     public Memory(Memory parent) {
         this.parent = parent;
         memory = new HashMap<String, Value>();

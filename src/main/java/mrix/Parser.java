@@ -10,8 +10,8 @@ import mrix.tokens.Token;
 import mrix.tokens.TokenType;
 
 public class Parser {
-    private List<Token> tokens;
-    private int size;
+    private final List<Token> tokens;
+    private final int size;
     private int position;
 
     public Parser(List<Token> tokens) {

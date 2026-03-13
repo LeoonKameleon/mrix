@@ -3,8 +3,8 @@ package mrix.typechecker;
 import java.util.HashMap;
 
 public class SymbolTable {
-    private SymbolTable parent;
-    private HashMap<String, VariableSymbol> symbols;
+    private final SymbolTable parent;
+    private final HashMap<String, VariableSymbol> symbols;
     public SymbolTable(SymbolTable parent) {
         this.parent = parent;
         this.symbols = new HashMap<>();

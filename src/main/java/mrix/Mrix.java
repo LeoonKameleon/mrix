@@ -11,7 +11,7 @@ import mrix.tokens.Token;
 import mrix.typechecker.TypeChecker;
 
 public class Mrix {
-    private static boolean hadError = false;
+    private static final boolean hadError = false;
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {

@@ -45,10 +45,6 @@ public class Value {
         return type;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
-    }
-
     public double toDouble() {
         if (type == INT) return ((Number) value).doubleValue();
         if (type == BOOL) return (boolean) value ? 1.0 : 0.0;

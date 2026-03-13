@@ -10,7 +10,7 @@ import static mrix.typechecker.DataType.*;
 import mrix.typechecker.DataType;
 
 public class StandardLibrary {
-    private HashMap<String, Function<List<Value>, Value>> functions = new HashMap<>();
+    private final HashMap<String, Function<List<Value>, Value>> functions = new HashMap<>();
 
     public StandardLibrary() {
         functions.put("sqrt", args -> {

@@ -13,8 +13,8 @@ import java.util.List;
 
 public class TypeChecker implements NodeVisitor {
     private SymbolTable table = new SymbolTable(null);
-    private List<String> errors = new ArrayList<String>();
-    private StandardLibrary stdlib = new StandardLibrary();
+    private final List<String> errors = new ArrayList<String>();
+    private final StandardLibrary stdlib = new StandardLibrary();
     private int loopDepth;
 
     public DataType visitPrimaryNode(PrimaryNode node) {
@@ -190,7 +190,7 @@ public class TypeChecker implements NodeVisitor {
                 }
             case ZEROS:
             case ONES:
-                if (expressionList.size() >= 1) {
+                if (!expressionList.isEmpty()) {
                     Node size = expressionList.get(0);
                     DataType type = size.accept(this);
                     if (type == INT || type == ANY) return MATRIX;
