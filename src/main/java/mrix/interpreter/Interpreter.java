@@ -19,8 +19,8 @@ import java.util.List;
 
 public class Interpreter implements InterpreterVisitor {
     private Memory memory = new Memory(null);
-    private PrintWriter out = new PrintWriter(System.out);
-    private StandardLibrary stdlib = new StandardLibrary();
+    private final PrintWriter out = new PrintWriter(System.out);
+    private final StandardLibrary stdlib = new StandardLibrary();
 
     private String formatValue(Value v) {
         if (v.getType() == MATRIX) {
@@ -81,18 +81,18 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(left.toDouble() <= right.toDouble(), BOOL);
             case ADD:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value(left.toLong() + right.toLong(), INT);
+                    return Value.of(left.toLong() + right.toLong());
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_ADD, ".+", null, op.getLine()), right);
                 }
                 if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
-                    return new Value(left.toString() + right.toString(), DataType.STRING);
+                    return new Value(left.toString() + right, DataType.STRING);
                 }
                 return new Value(left.toDouble() + right.toDouble(), FLOAT);
             case SUB:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value(left.toLong() - right.toLong(), INT);
+                    return Value.of(left.toLong() - right.toLong());
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_SUB, ".-", null, op.getLine()), right);
@@ -118,7 +118,7 @@ public class Interpreter implements InterpreterVisitor {
                     if (right.toLong() == 0) {
                         throw new MrixRuntimeException("Zero division", op.getLine());
                     }
-                    return new Value(left.toLong() / right.toLong(), INT);
+                    return Value.of(left.toLong() / right.toLong());
                 }
                 if (left.getType() == MATRIX && right.getType() == MATRIX) {
                     return applyOp(left, new Token(DOT_DIV, "./", null, op.getLine()), right);
@@ -129,7 +129,7 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(left.toDouble() / right.toDouble(), FLOAT);
             case MUL:
                 if (left.getType() == INT && right.getType() == INT) {
-                    return new Value(left.toLong() * right.toLong(), INT);
+                    return Value.of(left.toLong() * right.toLong());
                 }
                 if (left.getType() == DataType.STRING && right.getType() == INT) {
                     return new Value(left.toString().repeat(right.toInt()), DataType.STRING);
@@ -183,7 +183,7 @@ public class Interpreter implements InterpreterVisitor {
                     if (right.toLong() == 0) {
                         throw new MrixRuntimeException("Zero division", op.getLine());
                     }
-                    return new Value(left.toLong() % right.toLong(), INT);
+                    return Value.of(left.toLong() % right.toLong());
                 }
                 if (right.toDouble() == 0) {
                     throw new MrixRuntimeException("Zero division", op.getLine());
@@ -229,7 +229,7 @@ public class Interpreter implements InterpreterVisitor {
         Value result;
         switch (token.getTokenType()) {
             case INT_NUM: result = Value.of((long) token.getLiteral()); break;
-            case FLOAT_NUM: result = new Value((double) token.getLiteral(), FLOAT); break;
+            case FLOAT_NUM: result = new Value(token.getLiteral(), FLOAT); break;
             case STRING: result = new Value(token.getLiteral(), DataType.STRING); break;
             case TRUE: result = Value.TRUE; break;
             case FALSE: result = Value.FALSE; break;
@@ -452,7 +452,7 @@ public class Interpreter implements InterpreterVisitor {
                 node.getThenNode().accept(this);
             } catch (BreakException e) {
                 break;
-            } catch (ContinueException e) {
+            } catch (ContinueException _) {
             }
         }
         memory = memory.pop();
@@ -470,7 +470,7 @@ public class Interpreter implements InterpreterVisitor {
                 node.getInstruction().accept(this);
             } catch (BreakException e) {
                 break;
-            } catch (ContinueException e) {
+            } catch (ContinueException _) {
             }
         }
         memory = memory.pop();
@@ -497,7 +497,7 @@ public class Interpreter implements InterpreterVisitor {
                     out.print(val.toDouble());
                     break;
                 case STRING:
-                    out.print(val.toString());
+                    out.print(val);
                     break;
                 default:
                     out.print(formatValue(val));
