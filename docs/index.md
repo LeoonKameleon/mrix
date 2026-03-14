@@ -23,7 +23,10 @@ Mrix supports following data types:
 + **MATRIX** - A 2D (or 1D) array of numerical values (**INT**/**FLOAT**).
   + example: ```matrix = [[1, 2], [3.3, 4]];```
 
-+ ***ANY*** - Special data type used by the type-checker during the static analysis phase. This type is evaluated at runtime. It is not possible to declare this type explicitly.
++ *NULL* - Represents the absence of a value, it is used to indicate that a function or operation does not return a result (void). It is not possible to declare this type explicitly.
+
++ *ANY* - Special data type used by the type-checker during the static analysis phase. This type is evaluated at runtime. It is not possible to declare this type explicitly.
+
 
 ## 3. Variables and Syntax
 Variables are declared by a direct assignment. 
@@ -167,20 +170,32 @@ a = add(1, 4);
 ### Math & Statistics
 | Function | Accepted types | Description | Return type |
 | :---: | :---: | :---: | :---: |
-| `abs(x)` | **INT**, **FLOAT**, **MATRIX** | Returns absolute value of `x` | **INT**, **FLOAT** or **MATRIX** |
-| `sqrt(x)` | **INT**, **FLOAT**, **MATRIX** | Returns the square root of `x` | **INT**, **FLOAT** or **MATRIX** |
-| `pow(base, exp)` | **INT**, **FLOAT** | Returns the value of `base` raised to the power of `exp` | **INT** or **FLOAT** |
-| `sum(...)` | **INT**, **FLOAT**, **MATRIX** | Returns the sum of all given numerical arguments | **INT** or **FLOAT** |
-| `min(...)` | **INT**, **FLOAT**, **MATRIX** | Returns the minimum value of all given numerical arguments | **INT** or **FLOAT** |
-| `max(...)` | **INT**, **FLOAT**, **MATRIX** | Returns the maximum value of all given numerical arguments | **INT** or **FLOAT** |
-| `mean(...)` | **INT**, **FLOAT**, **MATRIX** | Returns the arithmetic mean of all given numerical arguments | **INT** or **FLOAT** |
+| `abs(x)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns absolute value of `x`. | **INT**, **FLOAT** or **MATRIX** |
+| `sqrt(x)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the square root of `x`. | **INT**, **FLOAT** or **MATRIX** |
+| `pow(base, exp)` | `base:` **INT**, **FLOAT** `exp:` **INT**, **FLOAT** | Returns the value of `base` raised to the power of `exp`. | **INT** or **FLOAT** |
+| `sum(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the sum of all given numerical arguments. | **INT** or **FLOAT** |
+| `min(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the minimum value of all given numerical arguments. | **INT** or **FLOAT** |
+| `max(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the maximum value of all given numerical arguments. | **INT** or **FLOAT** |
+| `mean(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the arithmetic mean of all given numerical arguments. | **INT** or **FLOAT** |
 
 ### Utilities
 | Function | Accepted types | Description | Return type |
 | :---: | :---: | :---: | :---: |
-| `size(A)` | **MATRIX** | Returns the size (`[rows, cols]`) of `A` | **MATRIX** |
-| `rows(A)` | **MATRIX** | Returns the number of rows in `A` | **INT** |
-| `cols(A)` | **MATRIX** | Returns the number of cols in `A` | **INT** |
-| `len(x)` | **STRING**, **MATRIX** | Returns the number of characters in a string or the total number of elements in a matrix | **INT** |
-| `at(x, i)` | **STRING** | Returns the character at index `i` | **STRING**|
-| `type(x)` | ***ANY*** | Returns the type name of `x` | **STRING** |
+| `size(A)` | `A:` **MATRIX** | Returns the size (`[rows, cols]`) of `A`. | **MATRIX** |
+| `rows(A)` | `A:` **MATRIX** | Returns the number of rows in `A`. | **INT** |
+| `cols(A)` | `A:` **MATRIX** | Returns the number of cols in `A`. | **INT** |
+| `len(x)` | `x:` **STRING**, **MATRIX** | Returns the number of characters in a string or the total number of elements in a matrix. | **INT** |
+| `at(x, i)` | `x:` **STRING** `y:` **INT** | Returns the character at index `i`. | **STRING**|
+| `type(x)` | `x:` *ANY* | Returns the type name of `x`. | **STRING** |
+| `int(x)` | `x:` **INT**, **FLOAT**, **STRING**, **BOOL** | Changes the data type of `x` to **INT**. | **INT** |
+| `float(x)` | `x:` **INT**, **FLOAT**, **STRING**, **BOOL** | Changes the data type of `x` to **FLOAT**. | **FLOAT** |
+| `str(x)` | `x:` **INT**, **FLOAT**, **STRING**, **BOOL** | Changes the data type of `x` to **STRING**. | **STRING** |
+
+### File I/O
+| Function | Accepted types | Description | Return type |
+| :---: | :---: | :---: | :---: |
+| `f_read(path)` | `path:` **STRING** | Returns the content of the file at `path`. | **STRING** |
+| `f_readline(path, i)` | `path:` **STRING** `i:` **INT** | Returns the `i`-th line of the file at `path`. | **STRING** |
+| `f_lines(path)` | `path:` **STRING** | Returns the number of lines in the file at `path`. | **INT** |
+| `f_write(path, s)` | `path:` **STRING** `s:` **STRING** | Writes `s` to the file at `path`. Creates the file if it doesn't exist. | *NULL* |
+| `f_append(path, s)` | `path:` **STRING** `s:` **STRING** | Appends `s` to the end of the file at `path`. Creates the file if it doesn't exist. | *NULL* |

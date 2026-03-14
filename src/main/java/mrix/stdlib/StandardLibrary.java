@@ -1,5 +1,12 @@
 package mrix.stdlib;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
@@ -11,8 +18,10 @@ import mrix.typechecker.DataType;
 
 public class StandardLibrary {
     private final HashMap<String, Function<List<Value>, Value>> functions = new HashMap<>();
+    private final Path fileDir;
 
-    public StandardLibrary() {
+    public StandardLibrary(Path fileDir) {
+        this.fileDir = fileDir;
         functions.put("sqrt", args -> {
             if (args.size() != 1) throw new StandardLibraryException("sqrt() expects 1 argument, but got " + args.size());
             Value value = args.get(0); 
@@ -198,7 +207,7 @@ public class StandardLibrary {
             throw new StandardLibraryException("len() does not support " + arg.getType() + " type");
         });
         functions.put("at", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("at() expects 2 arguments");
+            if (args.size() != 2) throw new StandardLibraryException("at() expects 2 arguments, but got " + args.size());
             Value string = args.get(0);
             Value index = args.get(1);
             if (string.getType() == STRING && index.getType() == INT) {
@@ -274,6 +283,66 @@ public class StandardLibrary {
             }
             throw new StandardLibraryException("str() does not support " + arg.getType() + " type");
         });
+        functions.put("f_read", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("f_read() expects 1 argument, but got " + args.size());
+            if (args.get(0).getType() != STRING) throw new StandardLibraryException("f_read() expects STRING as first argument");
+            String path = args.get(0).toString();
+            try {
+                String result = Files.readString(resolvePath(path));
+                return new Value(result, STRING);
+            } catch (IOException e) {
+                throw new StandardLibraryException("f_read() cannot read from file: " + e.getMessage());
+            }
+        });
+        functions.put("f_readline", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("readline() expects 2 arguments, but got " + args.size());
+            if (args.get(0).getType() != STRING) throw new StandardLibraryException("readline() expects STRING as first argument");
+            if (args.get(1).getType() != INT) throw new StandardLibraryException("readline() expects INT as second argument");
+            String path = args.get(0).toString();
+            int n = args.get(1).toInt();
+            try {
+                List<String> lines = Files.readAllLines(resolvePath(path));
+                if (n < 0 || n >= lines.size()) throw new StandardLibraryException("readline() line index out of bounds");
+                return new Value(lines.get(n), STRING);
+            } catch (IOException e) {
+                throw new StandardLibraryException("f_readline() cannot read file: " + e.getMessage());
+            }
+        });
+        functions.put("f_lines", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("f_lines() expects 1 argument, but got " + args.size());
+            if (args.get(0).getType() != STRING) throw new StandardLibraryException("f_lines() expects STRING");
+            try {
+                return Value.of(java.nio.file.Files.readAllLines(resolvePath(args.get(0).toString())).size());
+            } catch (java.io.IOException e) {
+                throw new StandardLibraryException("f_lines() cannot write to file: " + e.getMessage());
+            }
+        });
+        functions.put("f_append", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("f_append() expects 2 arguments, but got " + args.size());
+            if (args.get(0).getType() != STRING) throw new StandardLibraryException("f_append() expects STRING as first argument");
+            if (args.get(1).getType() != STRING) throw new StandardLibraryException("f_append() expects STRING as second argument");
+            String path = args.get(0).toString();
+            String content = args.get(1).toString();
+            try {
+                Files.writeString(resolvePath(path), content, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                return Value.NULL;
+            } catch (IOException e) {
+                throw new StandardLibraryException("f_append() cannot append to file: " + e.getMessage());
+            }
+        });
+        functions.put("f_write", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("f_write() expects 2 arguments, but got " + args.size());
+            if (args.get(0).getType() != STRING) throw new StandardLibraryException("f_write() expects STRING as first argument");
+            if (args.get(1).getType() != STRING) throw new StandardLibraryException("f_write() expects STRING as second argument");
+            String path = args.get(0).toString();
+            String content = args.get(1).toString();
+            try {
+                Files.writeString(resolvePath(path), content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                return Value.NULL;
+            } catch (IOException e) {
+                throw new StandardLibraryException("f_write() cannot append to file: " + e.getMessage());
+            }
+        });
     }
 
     public boolean has(String name) {
@@ -282,5 +351,9 @@ public class StandardLibrary {
 
     public Value call(String name, List<Value> args) {
         return functions.get(name).apply(args);
+    }
+
+    private Path resolvePath(String path) {
+        return fileDir.resolve(path).normalize();
     }
 }

@@ -14,13 +14,18 @@ import static mrix.tokens.TokenType.*;
 import static mrix.typechecker.DataType.*;
 
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements InterpreterVisitor {
     private Memory memory = new Memory(null);
     private final PrintWriter out = new PrintWriter(System.out);
-    private final StandardLibrary stdlib = new StandardLibrary();
+    private final StandardLibrary stdlib;
+
+    public Interpreter(Path fileDir) {
+        stdlib = new StandardLibrary(fileDir);
+    }
 
     private String formatValue(Value v) {
         if (v.getType() == MATRIX) {

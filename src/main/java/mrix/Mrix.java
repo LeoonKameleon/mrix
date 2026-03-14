@@ -2,6 +2,7 @@ package mrix;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -24,20 +25,21 @@ public class Mrix {
         }
     }
     private static void runFile(String filename) throws IOException {
+        Path fileDir = Paths.get(filename).toAbsolutePath().getParent();
         String content = Files.readString(Paths.get(filename));
-        run(content);
+        run(content, fileDir);
         if (hadError) {
             System.exit(1);
         }
     }
-    private static void run(String content) {
+    private static void run(String content, Path fileDir) {
         Scanner scanner = new Scanner(content);
         List<Token> tokens = scanner.tokenize();
         
         Parser parser = new Parser(tokens);
         Node ast = parser.parseProgram();
 
-        TypeChecker typeChecker = new TypeChecker();
+        TypeChecker typeChecker = new TypeChecker(fileDir);
         ast.accept(typeChecker);
         List<String> errors = typeChecker.getErrors();
         if (!errors.isEmpty()) {
@@ -47,7 +49,7 @@ public class Mrix {
             System.exit(1);
         }
 
-        Interpreter interpreter = new Interpreter();
+        Interpreter interpreter = new Interpreter(fileDir);
         ast.accept(interpreter);
         interpreter.finish();
     }
