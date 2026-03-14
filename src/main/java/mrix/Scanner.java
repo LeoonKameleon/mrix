@@ -101,7 +101,7 @@ public class Scanner {
     }
 
     private boolean isAlphaNumeric(char c) {
-        return isAlpha(c) || isDigit(c);
+        return isAlpha(c) || isDigit(c) || c == '_';
     }
 
     private boolean isAlpha(char c) {
