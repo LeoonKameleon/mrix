@@ -209,7 +209,7 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitIfNode(IfNode node) {
         DataType type = node.getCondition().accept(this);
-        if (type != BOOL) {
+        if (type != BOOL && type != ANY) {
             errors.add("If condition must be BOOL, got: " + type);
         }
         node.getThenNode().accept(this);
@@ -219,7 +219,7 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitWhileNode(WhileNode node) {
         DataType type = node.getCondition().accept(this);
-        if (type != BOOL) {
+        if (type != BOOL && type != ANY) {
             errors.add("While condition must be BOOL, got: " + type);
         }
         table = table.pushScope();
