@@ -8,14 +8,19 @@ import mrix.tokens.TokenType;
 import static mrix.tokens.TokenType.*;
 import static mrix.typechecker.DataType.*;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TypeChecker implements NodeVisitor {
     private SymbolTable table = new SymbolTable(null);
     private final List<String> errors = new ArrayList<String>();
-    private final StandardLibrary stdlib = new StandardLibrary();
+    private final StandardLibrary stdlib;
     private int loopDepth;
+
+    public TypeChecker(Path fileDir) {
+        stdlib = new StandardLibrary(fileDir);
+    }
 
     public DataType visitPrimaryNode(PrimaryNode node) {
         switch(node.getValue().getTokenType()) {
@@ -49,6 +54,7 @@ public class TypeChecker implements NodeVisitor {
         DataType leftType = node.getLeft().accept(this);
         DataType rightType = node.getRight().accept(this);
         Token op = node.getOp();
+        if (leftType == ANY || rightType == ANY) return ANY;
         if (leftType == UNKNOWN || rightType == UNKNOWN) return UNKNOWN;
         switch (op.getTokenType()) {
             case AND:
@@ -235,7 +241,7 @@ public class TypeChecker implements NodeVisitor {
             node.getInstruction().accept(this);
             loopDepth--;
             table = table.popScope();
-        } else if (rangeStartType != ANY || rangeEndType != ANY) {
+        } else if (rangeStartType != ANY && rangeEndType != ANY) {
             errors.add("For loop range values must be INT, got: " + rangeStartType + " and " + rangeEndType);
         }
         return null;
@@ -301,7 +307,7 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitFunctionCallNode(FunctionCallNode node) {
         Token id = node.getId();
-        if (stdlib.has(id.getLexeme())) return UNKNOWN;
+        if (stdlib.has(id.getLexeme())) return ANY;
         VariableSymbol symbol = table.get(id.getLexeme());
         if (symbol == null) {
             errors.add("Line " + node.getId().getLine() + ": Undefined function '" + id.getLexeme() + "'");
