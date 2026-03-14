@@ -452,7 +452,7 @@ public class Interpreter implements InterpreterVisitor {
         if (value.getType() != BOOL) {
             throw new MrixRuntimeException("WHILE condition must be BOOL, got: " + value.getType(), node.getCondition().getLine());
         }
-        while (value.toBoolean()) {
+        while (node.getCondition().accept(this).toBoolean()) {
             try {
                 node.getThenNode().accept(this);
             } catch (BreakException e) {
@@ -571,7 +571,9 @@ public class Interpreter implements InterpreterVisitor {
         if (params.size() != args.size()) {
             throw new MrixRuntimeException("Wrong number of arguments in function '" + id.getLexeme() + "'", id.getLine());
         }
+        
 
+        Memory initial = memory;
         memory = memory.push();
         for (int i=0; i<params.size(); i++) {
             Value argValue = args.get(i).accept(this);
@@ -583,9 +585,10 @@ public class Interpreter implements InterpreterVisitor {
             function.getInstruction().accept(this);
         } catch (ReturnException e) {
             result = e.value;
+        } finally {
+            memory = initial;
         }
         
-        memory = memory.pop();
         return result;
     }
 

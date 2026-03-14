@@ -10,8 +10,20 @@ print type(example);
 
 filename = "../mrix/interpreter/Interpreter.java";
 
-print f_read(filename);
+// print f_read(filename);
 
-//for i = 0:f_lines(filename)-1 {
-//    print f_readline(filename, i);
-//}
+// for i = 0:f_lines(filename)-1 {
+//     print f_readline(filename, i);
+// }
+
+funct fibonacci(x) {
+    if (x == 0) {
+        return 1;
+    }
+    if (x == 1) {
+        return 1;
+    }
+    return fibonacci(x-1) + fibonacci(x-2);
+}
+
+print fibonacci(10);
