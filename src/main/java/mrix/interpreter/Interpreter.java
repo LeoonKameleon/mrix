@@ -1,5 +1,7 @@
 package mrix.interpreter;
 
+import mrix.Parser;
+import mrix.Scanner;
 import mrix.exceptions.BreakException;
 import mrix.exceptions.ContinueException;
 import mrix.exceptions.MrixRuntimeException;
@@ -13,7 +15,10 @@ import mrix.typechecker.DataType;
 import static mrix.tokens.TokenType.*;
 import static mrix.typechecker.DataType.*;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -594,6 +599,21 @@ public class Interpreter implements InterpreterVisitor {
 
     public Value visitExpressionNode(ExpressionNode node) {
         return node.getOrExpression().accept(this);
+    }
+
+    public Value visitImportNode(ImportNode node) {
+        String path = node.getPath().getLiteral().toString();
+        try {
+            String content = Files.readString(stdlib.resolvePath(path));
+            Scanner scanner = new Scanner(content);
+            List<Token> tokens = scanner.tokenize();
+            Parser parser = new Parser(tokens);
+            Node ast = parser.parseProgram();
+            ast.accept(this);        
+        } catch (IOException | InvalidPathException e) {
+            throw new MrixRuntimeException("Cannot import file '" + path + "'", node.getLine());
+        }
+        return null;
     }
 
     public void finish() {

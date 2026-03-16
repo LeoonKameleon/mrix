@@ -1,5 +1,7 @@
 package mrix.typechecker;
 
+import mrix.Parser;
+import mrix.Scanner;
 import mrix.nodes.*;
 import mrix.stdlib.StandardLibrary;
 import mrix.tokens.Token;
@@ -8,6 +10,7 @@ import mrix.tokens.TokenType;
 import static mrix.tokens.TokenType.*;
 import static mrix.typechecker.DataType.*;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -321,6 +324,21 @@ public class TypeChecker implements NodeVisitor {
             argument.accept(this);
         }
         return UNKNOWN;
+    }
+
+    public DataType visitImportNode(ImportNode node) {
+        String path = node.getPath().getLiteral().toString();
+        try {
+            String content = java.nio.file.Files.readString(stdlib.resolvePath(path));
+            Scanner scanner = new Scanner(content);
+            List<Token> tokens = scanner.tokenize();
+            Parser parser = new Parser(tokens);
+            Node ast = parser.parseProgram();
+            ast.accept(this);
+        } catch (java.io.IOException e) {
+            errors.add("Line " + node.getLine() + ": Cannot import file: '" + path + "'");
+        }
+        return null;
     }
 
 

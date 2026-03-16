@@ -34,6 +34,7 @@ public class Scanner {
         keywords.put("funct", FUNCTION);
         keywords.put("true", TRUE);
         keywords.put("false", FALSE);
+        keywords.put("import", IMPORT);
     }
 
     public Scanner(String source) {

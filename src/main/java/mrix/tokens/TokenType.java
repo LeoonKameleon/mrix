@@ -12,5 +12,5 @@ public enum TokenType {
     AND, OR, 
     EYE, ZEROS, ONES,
     PRINT, ID, INT_NUM, FLOAT_NUM, STRING, FUNCTION, TRUE, FALSE,
-    EOF
+    EOF, IMPORT
 }

@@ -6,9 +6,6 @@ funct example(a, b) {
 }
 
 x = example(3, 4);
-print type(example);
-
-filename = "../mrix/interpreter/Interpreter.java";
 
 // print f_read(filename);
 
@@ -25,5 +22,3 @@ funct fibonacci(x) {
     }
     return fibonacci(x-1) + fibonacci(x-2);
 }
-
-print fibonacci(10);

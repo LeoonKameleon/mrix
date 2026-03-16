@@ -24,4 +24,5 @@ public interface NodeVisitor {
     DataType visitUnaryOpNode(UnaryOpNode node);
     DataType visitVariableNode(VariableNode node);
     DataType visitWhileNode(WhileNode node);
+    DataType visitImportNode(ImportNode node);
 }

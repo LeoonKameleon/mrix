@@ -350,7 +350,7 @@ public class StandardLibrary {
         return functions.get(name).apply(args);
     }
 
-    private Path resolvePath(String path) {
+    public Path resolvePath(String path) {
         return fileDir.resolve(path).normalize();
     }
 }

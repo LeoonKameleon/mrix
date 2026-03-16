@@ -24,4 +24,5 @@ public interface InterpreterVisitor {
     Value visitUnaryOpNode(UnaryOpNode node);
     Value visitVariableNode(VariableNode node);
     Value visitWhileNode(WhileNode node);
+    Value visitImportNode(ImportNode node);
 }

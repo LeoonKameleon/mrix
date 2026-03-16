@@ -64,6 +64,12 @@ public class Parser {
             expect(SEMICOLON);
             return new ContinueNode(t.getLine());
         }
+        if (check(IMPORT)) {
+            Token t = consume();
+            Token path = expect(STRING);
+            expect(SEMICOLON);
+            return new ImportNode(path, t.getLine());
+        }
         if (check(ID) && peek(1).getTokenType() == LEFT_PAREN) {
             Node call = parseFunctionCall();
             expect(SEMICOLON);
@@ -325,11 +331,12 @@ public class Parser {
         return parameters;
     }
 
-    private void expect(TokenType type) {
+    private Token expect(TokenType type) {
         Token token = tokens.get(position++);
         if (token.getTokenType() != type) {
             throw new RuntimeException("Line " + token.getLine() + ": Expected " + type + ", but got " + token.getTokenType());
         }
+        return token;
     }
 
     private boolean check(TokenType type) {
