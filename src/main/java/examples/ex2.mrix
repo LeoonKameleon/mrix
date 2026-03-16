@@ -1,5 +1,3 @@
 import "ex1.mrix";
 
 print fibonacci(10);
-
-print example(2, 3);

@@ -165,6 +165,43 @@ funct add(a, b) {
 a = add(1, 4);
 ```
 
+## 10. Imports
+Mrix supports importing code from other `.mrix` files using `import` keyword:
+<table>
+<tr>
+<td width="50%">
+
+**fibonacci.mrix**
+
+<pre><code>
+funct fibonacci(x) {
+    if (x == 0) {
+        return 1;
+    }
+    if (x == 1) {
+        return 1;
+    }
+    return fibonacci(x-1) + fibonacci(x-2);
+}
+</code></pre>
+
+</td>
+
+<td width="50%">
+
+**main.mrix**
+
+<pre><code>
+import "fibonacci.mrix";
+
+a = fibonacci(10);
+print a;
+</code></pre>
+
+</td>
+</tr>
+</table>
+
 ## Standard Library of Built-In Functions
 
 ### Math & Statistics
