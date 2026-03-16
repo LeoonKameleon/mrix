@@ -202,6 +202,10 @@ print a;
 </tr>
 </table>
 
+When the file is imported, it is executed from top to bottom so that all global variables and functions defined in the imported file become available in the current scope.
+
+The path can be relative or absolute. Its type must be **STRING**.
+
 ## Standard Library of Built-In Functions
 
 ### Math & Statistics
