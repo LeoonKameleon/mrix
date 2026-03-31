@@ -10,7 +10,6 @@ import mrix.tokens.TokenType;
 import static mrix.tokens.TokenType.*;
 import static mrix.typechecker.DataType.*;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;

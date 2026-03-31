@@ -212,6 +212,24 @@ public class StandardLibrary {
             }
             throw new StandardLibraryException("pow() does not support " + string.getType() + " and " + index.getType());
         });
+        functions.put("contains", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("contains() expects 2 arguments, but got " + args.size());
+            Value array = args.get(0);
+            Value element = args.get(1);
+            if (array.getType() == STRING && element.getType() == STRING) {
+                return new Value(array.toString().contains(element.toString()), BOOL);
+            }
+            if (array.getType() == MATRIX && (element.getType() == INT || element.getType() == FLOAT || element.getType() == BOOL)) {
+                double[][] m = array.toMatrix();
+                for (double[] row : m) {
+                    for (double val : row) {
+                        if (val == element.toDouble()) return new Value(true, BOOL);
+                    }
+                }
+                return new Value(false, BOOL);
+            }
+            throw new StandardLibraryException("contains() does not support " + array.getType() + " and " + element.getType());
+        });
         functions.put("int", args -> {
             if (args.size() != 1) throw new StandardLibraryException("int() expects 1 argument, but got " + args.size());
             Value arg = args.get(0);
