@@ -7,6 +7,10 @@ funct example(a, b) {
 
 x = example(3, 4);
 
+y = [[4, 3],
+     [3, 2]];
+print inv(y);
+
 // print f_read(filename);
 
 // for i = 0:f_lines(filename)-1 {

@@ -206,15 +206,16 @@ The path can be relative or absolute. Its type must be **STRING**.
 ## Standard Library of Built-In Functions
 
 ### Math & Statistics
-| Function | Accepted types | Description | Return type |
-| :---: | :---: | :---: | :---: |
-| `abs(x)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns absolute value of `x`. | **INT**, **FLOAT** or **MATRIX** |
-| `sqrt(x)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the square root of `x`. | **INT**, **FLOAT** or **MATRIX** |
-| `pow(base, exp)` | `base:` **INT**, **FLOAT** `exp:` **INT**, **FLOAT** | Returns the value of `base` raised to the power of `exp`. | **INT** or **FLOAT** |
-| `sum(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the sum of all given numerical arguments. | **INT** or **FLOAT** |
-| `min(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the minimum value of all given numerical arguments. | **INT** or **FLOAT** |
-| `max(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the maximum value of all given numerical arguments. | **INT** or **FLOAT** |
-| `mean(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the arithmetic mean of all given numerical arguments. | **INT** or **FLOAT** |
+|     Function     |                    Accepted types                    |                          Description                          |           Return type            |
+|:----------------:|:----------------------------------------------------:|:-------------------------------------------------------------:|:--------------------------------:|
+|     `inv(A)`     |                   `A:` **MATRIX**                    |                  Returns the inverse of `A`                   |            **MATRIX**            |
+|     `abs(x)`     |         `x:` **INT**, **FLOAT**, **MATRIX**          |                Returns absolute value of `x`.                 | **INT**, **FLOAT** or **MATRIX** |
+|    `sqrt(x)`     |         `x:` **INT**, **FLOAT**, **MATRIX**          |                Returns the square root of `x`.                | **INT**, **FLOAT** or **MATRIX** |
+| `pow(base, exp)` | `base:` **INT**, **FLOAT** `exp:` **INT**, **FLOAT** |   Returns the value of `base` raised to the power of `exp`.   |       **INT** or **FLOAT**       |
+|   `sum(x...)`    |         `x:` **INT**, **FLOAT**, **MATRIX**          |       Returns the sum of all given numerical arguments.       |       **INT** or **FLOAT**       |
+|   `min(x...)`    |         `x:` **INT**, **FLOAT**, **MATRIX**          |  Returns the minimum value of all given numerical arguments.  |       **INT** or **FLOAT**       |
+|   `max(x...)`    |         `x:` **INT**, **FLOAT**, **MATRIX**          |  Returns the maximum value of all given numerical arguments.  |       **INT** or **FLOAT**       |
+|   `mean(x...)`   |         `x:` **INT**, **FLOAT**, **MATRIX**          | Returns the arithmetic mean of all given numerical arguments. |       **INT** or **FLOAT**       |
 
 ### Utilities
 |     Function     |                              Accepted types                               |                                        Description                                        | Return type |

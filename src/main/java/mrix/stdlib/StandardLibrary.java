@@ -58,6 +58,52 @@ public class StandardLibrary {
             }
             throw new StandardLibraryException("abs() does not support " + arg.getType() + " type");
         });
+        functions.put("inv", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("inv() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == MATRIX) {
+                double[][] matrix = arg.toMatrix();
+                if (matrix.length != matrix[0].length) throw new StandardLibraryException("inv() expects a square matrix, but got size " + matrix.length + ", " + matrix[0].length);
+                int n = matrix.length;
+                double[][] extended = new double[n][2*n];
+                for (int i=0; i<n; i++) {
+                    for (int j=0; j<n; j++) {
+                        extended[i][j] = matrix[i][j];
+                    }
+                    extended[i][i+n] = 1;
+                }
+                for (int col=0; col<n; col++) {
+                    int pivot = -1;
+                    for (int row=col; row<n; row++) {
+                        if (Math.abs(extended[row][col]) > 1e-12) {
+                            pivot = row;
+                            break;
+                        }
+                    }
+                    if (pivot == -1) throw new StandardLibraryException("inv(): matrix is singular");
+                    double[] tmp = extended[col];
+                    extended[col] = extended[pivot];
+                    extended[pivot] = tmp;
+
+                    double div = extended[col][col];
+                    for (int j=0; j<2*n; j++) extended[col][j] /= div;
+
+                    for (int row=0; row<n; row++) {
+                        if (row == col) continue;
+                        double factor = extended[row][col];
+                        for (int j=0; j<2*n; j++) extended[row][j] -= factor * extended[col][j];
+                    }
+                }
+
+                double[][] result = new double[n][n];
+                for (int i=0; i<n; i++)
+                    for (int j=0; j<n; j++)
+                        result[i][j] = extended[i][j+n];
+
+                return new Value(result, MATRIX);
+            }
+            throw new StandardLibraryException("inv() does not support " + arg.getType() + " type");
+        });
         functions.put("size", args -> {
             if (args.size() != 1) throw new StandardLibraryException("size() expects 1 argument, but got " + args.size());
             Value arg = args.get(0);
