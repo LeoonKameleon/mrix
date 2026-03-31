@@ -175,10 +175,7 @@ Mrix supports importing code from other `.mrix` files using `import` keyword:
 
 <pre><code>
 funct fibonacci(x) {
-    if (x == 0) {
-        return 1;
-    }
-    if (x == 1) {
+    if (x == 0 or x == 1) {
         return 1;
     }
     return fibonacci(x-1) + fibonacci(x-2);
