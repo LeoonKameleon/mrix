@@ -220,17 +220,18 @@ The path can be relative or absolute. Its type must be **STRING**.
 | `mean(x...)` | `x:` **INT**, **FLOAT**, **MATRIX** | Returns the arithmetic mean of all given numerical arguments. | **INT** or **FLOAT** |
 
 ### Utilities
-| Function | Accepted types | Description | Return type |
-| :---: | :---: | :---: | :---: |
-| `size(A)` | `A:` **MATRIX** | Returns the size (`[rows, cols]`) of `A`. | **MATRIX** |
-| `rows(A)` | `A:` **MATRIX** | Returns the number of rows in `A`. | **INT** |
-| `cols(A)` | `A:` **MATRIX** | Returns the number of cols in `A`. | **INT** |
-| `len(x)` | `x:` **STRING**, **MATRIX** | Returns the number of characters in a string or the total number of elements in a matrix. | **INT** |
-| `at(x, i)` | `x:` **STRING** `y:` **INT** | Returns the character at index `i`. | **STRING**|
-| `type(x)` | `x:` *ANY* | Returns the type name of `x`. | **STRING** |
-| `int(x)` | `x:` **INT**, **FLOAT**, **STRING**, **BOOL** | Changes the data type of `x` to **INT**. | **INT** |
-| `float(x)` | `x:` **INT**, **FLOAT**, **STRING**, **BOOL** | Changes the data type of `x` to **FLOAT**. | **FLOAT** |
-| `str(x)` | `x:` **INT**, **FLOAT**, **STRING**, **BOOL** | Changes the data type of `x` to **STRING**. | **STRING** |
+|     Function     |                              Accepted types                               |                                        Description                                        | Return type |
+|:----------------:|:-------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------:|:-----------:|
+|    `size(A)`     |                              `A:` **MATRIX**                              |                         Returns the size (`[rows, cols]`) of `A`.                         | **MATRIX**  |
+|    `rows(A)`     |                              `A:` **MATRIX**                              |                            Returns the number of rows in `A`.                             |   **INT**   |
+|    `cols(A)`     |                              `A:` **MATRIX**                              |                            Returns the number of cols in `A`.                             |   **INT**   |
+|     `len(x)`     |                        `x:` **STRING**, **MATRIX**                        | Returns the number of characters in a string or the total number of elements in a matrix. |   **INT**   |
+| `contains(x, y)` | `x:` **STRING**, **MATRIX** `y:` **STRING**, **INT**, **FLOAT**, **BOOL** |                    Returns true if `x` contains `y`, otherwise false.                     |  **BOOL**   |
+|    `at(x, i)`    |                       `x:` **STRING** `y:` **INT**                        |                            Returns the character at index `i`.                            | **STRING**  |
+|    `type(x)`     |                                `x:` *ANY*                                 |                               Returns the type name of `x`.                               | **STRING**  |
+|     `int(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                         Changes the data type of `x` to **INT**.                          |   **INT**   |
+|    `float(x)`    |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                        Changes the data type of `x` to **FLOAT**.                         |  **FLOAT**  |
+|     `str(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                        Changes the data type of `x` to **STRING**.                        | **STRING**  |
 
 ### File I/O
 | Function | Accepted types | Description | Return type |
