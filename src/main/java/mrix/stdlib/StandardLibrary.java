@@ -38,6 +38,83 @@ public class StandardLibrary {
             if (result == (long) result) return Value.of((long) result);
             return new Value(result, FLOAT);
         });
+        functions.put("sin", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("sin() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == FLOAT || arg.getType() == INT) {
+                return new Value(Math.sin(arg.toDouble()), FLOAT);
+            }
+            throw new StandardLibraryException("sin() does not support " + arg.getType() + " type");
+        });
+        functions.put("cos", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("cos() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == FLOAT || arg.getType() == INT) {
+                return new Value(Math.cos(arg.toDouble()), FLOAT);
+            }
+            throw new StandardLibraryException("cos() does not support " + arg.getType() + " type");
+        });
+        functions.put("tan", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("tan() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if ( arg.getType() == FLOAT || arg.getType() == INT) {
+                return new Value(Math.tan(arg.toDouble()), FLOAT);
+            }
+            throw new StandardLibraryException("tan() does not support " + arg.getType() + " type");
+        });
+        functions.put("round", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("round() expects 2 arguments, but got " + args.size());
+            Value arg = args.get(0);
+            Value n = args.get(1);
+            if (n.getType() != INT) throw new StandardLibraryException("round() expects INT as second argument, but got" + n.getType());
+            if (arg.getType() == FLOAT) {
+                double m = Math.pow(10, n.toLong());
+                return new Value(Math.round(arg.toDouble()*m)/m, FLOAT);
+            }
+            if (arg.getType() == INT) {
+                return arg;
+            }
+            throw new StandardLibraryException("round() does not support " + arg.getType() + " type");
+        });
+        functions.put("floor", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("floor() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == FLOAT) {
+                return new Value(Math.floor(arg.toDouble()), FLOAT);
+            }
+            if (arg.getType() == INT) {
+                return arg;
+            }
+            throw new StandardLibraryException("floor() does not support " + arg.getType() + " type");
+        });
+        functions.put("ceil", args ->{
+            if (args.size() != 1) throw new StandardLibraryException("ceil() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == FLOAT) {
+                return new Value(Math.ceil(arg.toDouble()), FLOAT);
+            }
+            if (arg.getType() == INT) {
+                return arg;
+            }
+            throw new StandardLibraryException("ceil() does not support " + arg.getType() + " type");
+        });
+        functions.put("log", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("log() expects 2 arguments, but got " + args.size());
+            Value arg = args.get(0);
+            Value base = args.get(1);
+            if ((arg.getType() == FLOAT || arg.getType() == INT) && (base.getType() == FLOAT || base.getType() == INT)) {
+                return new Value(Math.log(arg.toDouble())/Math.log(base.toDouble()), FLOAT);
+            }
+            throw new StandardLibraryException("log() does not support " + arg.getType() + " and " + base.getType() + " types");
+        });
+        functions.put("ln", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("ln() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == FLOAT || arg.getType() == INT) {
+                return new Value(Math.log(arg.toDouble()), FLOAT);
+            }
+            throw new StandardLibraryException("ln() does not support " + arg.getType() + " type");
+        });
         functions.put("abs", args -> {
             if (args.size() != 1) throw new StandardLibraryException("abs() expects 1 argument, but got " + args.size());
             Value arg = args.get(0);
@@ -175,7 +252,7 @@ public class StandardLibrary {
         });
         functions.put("max", args -> {
             if (args.isEmpty()) throw new StandardLibraryException("max() expects at least 1 argument");
-            double result = Double.MIN_VALUE;
+            double result = Double.NEGATIVE_INFINITY;
             boolean allInt = true;
             for (Value arg : args) {
                 if (arg.getType() == STRING || arg.getType() == FUNCTION)
@@ -292,9 +369,6 @@ public class StandardLibrary {
             if (arg.getType() == BOOL) {
                 return Value.of(arg.toLong());
             }
-            if (arg.getType() == MATRIX) {
-                throw new StandardLibraryException("int() does not support " + arg.getType() + " type");
-            }
             if (arg.getType() == INT) {
                 return arg;
             }
@@ -316,9 +390,6 @@ public class StandardLibrary {
             if (arg.getType() == BOOL) {
                 return Value.of(arg.toLong());
             }
-            if (arg.getType() == MATRIX) {
-                throw new StandardLibraryException("int() does not support " + arg.getType() + " type");
-            }
             if (arg.getType() == FLOAT) {
                 return arg;
             }
@@ -336,13 +407,24 @@ public class StandardLibrary {
             if (arg.getType() == BOOL) {
                 return new Value(arg.toBoolean() ? "true" : "false", STRING);
             }
-            if (arg.getType() == MATRIX) {
-                throw new StandardLibraryException("str() does not support " + arg.getType() + " type");
-            }
             if (arg.getType() == STRING) {
                 return arg;
             }
             throw new StandardLibraryException("str() does not support " + arg.getType() + " type");
+        });
+        functions.put("bool", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("bool() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == INT) {
+                return new Value(arg.toLong() == 1, BOOL);
+            }
+            if (arg.getType() == FLOAT) {
+                return new Value(arg.toDouble() == 1.0, BOOL);
+            }
+            if (arg.getType() == BOOL) {
+                return arg;
+            }
+            throw new StandardLibraryException("bool() does not support " + arg.getType() + " type");
         });
         functions.put("f_read", args -> {
             if (args.size() != 1) throw new StandardLibraryException("f_read() expects 1 argument, but got " + args.size());
