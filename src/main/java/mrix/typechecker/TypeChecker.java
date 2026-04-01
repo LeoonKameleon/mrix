@@ -322,7 +322,7 @@ public class TypeChecker implements NodeVisitor {
         for (Node argument : node.getExpressionList()) {
             argument.accept(this);
         }
-        return UNKNOWN;
+        return ANY;
     }
 
     public DataType visitImportNode(ImportNode node) {
