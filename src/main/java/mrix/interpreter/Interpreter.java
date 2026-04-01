@@ -62,14 +62,11 @@ public class Interpreter implements InterpreterVisitor {
         if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
             double[][] matrix = value.toMatrix();
             if (matrix.length == 1) {
-                int col = variable.getExpressionList().get(0).accept(this).toInt();
+                int col = toIndex(variable.getExpressionList().get(0).accept(this), matrix[0].length, variable.getLine());
                 return new Value(matrix[0][col], FLOAT);
             }
-            int row = variable.getExpressionList().get(0).accept(this).toInt();
-            int col = variable.getExpressionList().get(1).accept(this).toInt();
-            if (row < 0 || row >= matrix.length || col < 0 || col >= matrix[0].length) {
-                throw new MrixRuntimeException("Matrix index out of bounds", variable.getId().getLine());
-            }
+            int row = toIndex(variable.getExpressionList().get(0).accept(this), matrix.length, variable.getLine());
+            int col = toIndex(variable.getExpressionList().get(1).accept(this), matrix[0].length, variable.getLine());
             return new Value(matrix[row][col], FLOAT);
         }
         return value;
@@ -233,6 +230,14 @@ public class Interpreter implements InterpreterVisitor {
         }
     }
 
+    private int toIndex(Value value, int max, int line) {
+        long idx = value.toLong();
+        if (idx < 0 || idx >= max) {
+            throw new MrixRuntimeException("Index " + idx + " out of bounds", line);
+        }
+        return (int) idx;
+    }
+
     public Value visitPrimaryNode(PrimaryNode node) {
         if (node.getCachedValue() != null) return node.getCachedValue();
         Token token = node.getValue();
@@ -265,11 +270,11 @@ public class Interpreter implements InterpreterVisitor {
             }
             double[][] matrix = existing.toMatrix();
             if (matrix.length == 1) {
-                int col = variable.getExpressionList().get(0).accept(this).toInt();
+                int col = toIndex(variable.getExpressionList().get(0).accept(this), matrix[0].length, variable.getLine());
                 matrix[0][col] = value.toDouble();
             } else {
-                int row = variable.getExpressionList().get(0).accept(this).toInt();
-                int col = variable.getExpressionList().get(1).accept(this).toInt();
+                int row = toIndex(variable.getExpressionList().get(0).accept(this), matrix.length, variable.getLine());
+                int col = toIndex(variable.getExpressionList().get(1).accept(this), matrix[0].length, variable.getLine());
                 matrix[row][col] = value.toDouble();
             }
         } else {
@@ -308,6 +313,7 @@ public class Interpreter implements InterpreterVisitor {
             case MOD_ASSIGN: {
                 Token op = new Token(MOD, "/", null, node.getOp().getLine());
                 assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
+                break;
             }
             default:
                 throw new MrixRuntimeException("Unknown assignment operator: '" + node.getOp().getLexeme()+ "'", node.getOp().getLine());
@@ -457,24 +463,25 @@ public class Interpreter implements InterpreterVisitor {
         if (value.getType() != BOOL) {
             throw new MrixRuntimeException("WHILE condition must be BOOL, got: " + value.getType(), node.getCondition().getLine());
         }
-        while (node.getCondition().accept(this).toBoolean()) {
+        while (value.toBoolean()) {
             try {
                 node.getThenNode().accept(this);
             } catch (BreakException e) {
                 break;
             } catch (ContinueException _) {
             }
+            value = node.getCondition().accept(this);
         }
         memory = memory.pop();
         return null;
     }
 
     public Value visitForNode(ForNode node) {
-        int rangeStart = node.getRangeStart().accept(this).toInt();
-        int rangeEnd = node.getRangeEnd().accept(this).toInt();
+        long rangeStart = node.getRangeStart().accept(this).toLong();
+        long rangeEnd = node.getRangeEnd().accept(this).toLong();
         String id = node.getId().getLexeme();
         memory = memory.push();
-        for (int i=rangeStart; i<=rangeEnd; i++) {
+        for (long i=rangeStart; i<=rangeEnd; i++) {
             memory.put(id, Value.of(i));
             try {
                 node.getInstruction().accept(this);
@@ -576,14 +583,14 @@ public class Interpreter implements InterpreterVisitor {
         if (params.size() != args.size()) {
             throw new MrixRuntimeException("Wrong number of arguments in function '" + id.getLexeme() + "'", id.getLine());
         }
-        
+
+        List<Value> argValues = new ArrayList<>();
+        for (Node arg : args) argValues.add(arg.accept(this));
 
         Memory initial = memory;
         memory = memory.push();
-        for (int i=0; i<params.size(); i++) {
-            Value argValue = args.get(i).accept(this);
-            memory.put(params.get(i).getLexeme(), argValue);
-        }
+        for (int i = 0; i < params.size(); i++)
+            memory.put(params.get(i).getLexeme(), argValues.get(i));
         
         Value result = null;
         try {

@@ -331,7 +331,11 @@ public class StandardLibrary {
             Value string = args.get(0);
             Value index = args.get(1);
             if (string.getType() == STRING && index.getType() == INT) {
-                return new Value(string.toString().substring(index.toInt(), index.toInt()+1), STRING);
+                long idx = index.toLong();
+                if (idx < 0 || idx >= string.toString().length()) {
+                    throw new StandardLibraryException("at() index out of bounds: " + idx);
+                }
+                return new Value(string.toString().substring((int) idx, (int) idx + 1), STRING);
             }
             throw new StandardLibraryException("pow() does not support " + string.getType() + " and " + index.getType());
         });
