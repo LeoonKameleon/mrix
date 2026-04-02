@@ -208,10 +208,19 @@ The path can be relative or absolute. Its type must be **STRING**.
 ### Math & Statistics
 |     Function     |                    Accepted types                    |                          Description                          |           Return type            |
 |:----------------:|:----------------------------------------------------:|:-------------------------------------------------------------:|:--------------------------------:|
-|     `inv(A)`     |                   `A:` **MATRIX**                    |                  Returns the inverse of `A`                   |            **MATRIX**            |
+|     `inv(A)`     |                   `A:` **MATRIX**                    |                  Returns the inverse of `A`.                  |            **MATRIX**            |
 |     `abs(x)`     |         `x:` **INT**, **FLOAT**, **MATRIX**          |                Returns absolute value of `x`.                 | **INT**, **FLOAT** or **MATRIX** |
 |    `sqrt(x)`     |         `x:` **INT**, **FLOAT**, **MATRIX**          |                Returns the square root of `x`.                | **INT**, **FLOAT** or **MATRIX** |
+|     `sin(x)`     |               `x:` **INT**, **FLOAT**                |                   Returns the sine of `x`.                    |            **FLOAT**             |
+|     `cos(x)`     |               `x:` **INT**, **FLOAT**                |                  Returns the cosine of `x`.                   |            **FLOAT**             |
+|     `tan(x)`     |               `x:` **INT**, **FLOAT**                |                  Returns the tangent of `x`.                  |            **FLOAT**             |
+|  `log(x, base)`  |  `x:` **INT**, **FLOAT** `base:` **INT**, **FLOAT**  |             Returns the `base` logarithm of `x`.              |            **FLOAT**             |
+|     `ln(x)`      |               `x:` **INT**, **FLOAT**                |             Returns the natural logarithm of `x`.             |            **FLOAT**             |
 | `pow(base, exp)` | `base:` **INT**, **FLOAT** `exp:` **INT**, **FLOAT** |   Returns the value of `base` raised to the power of `exp`.   |       **INT** or **FLOAT**       |
+|     `exp(x)`     |               `x:` **INT**, **FLOAT**                |                Returns the exponential of `x`.                |            **FLOAT**             |
+|    `floor(x)`    |               `x:` **INT**, **FLOAT**                |                   Returns the floor of `x`.                   |       **INT** or **FLOAT**       |
+|    `ceil(x)`     |               `x:` **INT**, **FLOAT**                |                  Returns the ceiling of `x`.                  |       **INT** or **FLOAT**       |
+|  `round(x, n)`   |         `x:` **INT**, **FLOAT** `n:` **INT**         |    Returns the value of `x` rounded to `n` decimal places.    |       **INT** or **FLOAT**       |
 |   `sum(x...)`    |         `x:` **INT**, **FLOAT**, **MATRIX**          |       Returns the sum of all given numerical arguments.       |       **INT** or **FLOAT**       |
 |   `min(x...)`    |         `x:` **INT**, **FLOAT**, **MATRIX**          |  Returns the minimum value of all given numerical arguments.  |       **INT** or **FLOAT**       |
 |   `max(x...)`    |         `x:` **INT**, **FLOAT**, **MATRIX**          |  Returns the maximum value of all given numerical arguments.  |       **INT** or **FLOAT**       |
@@ -227,9 +236,10 @@ The path can be relative or absolute. Its type must be **STRING**.
 | `contains(x, y)` | `x:` **STRING**, **MATRIX** `y:` **STRING**, **INT**, **FLOAT**, **BOOL** |                    Returns true if `x` contains `y`, otherwise false.                     |  **BOOL**   |
 |    `at(x, i)`    |                       `x:` **STRING** `y:` **INT**                        |                            Returns the character at index `i`.                            | **STRING**  |
 |    `type(x)`     |                                `x:` *ANY*                                 |                               Returns the type name of `x`.                               | **STRING**  |
-|     `int(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                         Changes the data type of `x` to **INT**.                          |   **INT**   |
-|    `float(x)`    |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                        Changes the data type of `x` to **FLOAT**.                         |  **FLOAT**  |
-|     `str(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                        Changes the data type of `x` to **STRING**.                        | **STRING**  |
+|     `int(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                           Returns the value of `x` as **INT**.                            |   **INT**   |
+|    `float(x)`    |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                          Returns the value of `x` as **FLOAT**.                           |  **FLOAT**  |
+|     `str(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                          Returns the value of `x` as **STRING**.                          | **STRING**  |
+|    `bool(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                           Returns the value of `x` as **BOOL**.                           |  **BOOL**   |
 
 ### File I/O
 | Function | Accepted types | Description | Return type |
