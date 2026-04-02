@@ -314,6 +314,14 @@ public class StandardLibrary {
             if (result == (long) result) return Value.of((long) result);
             return new Value(result, FLOAT);
         });
+        functions.put("exp", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("exp() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == INT || arg.getType() == FLOAT) {
+                return new Value(Math.exp(arg.toDouble()), FLOAT);
+            }
+            throw new StandardLibraryException("exp() does not support " + arg.getType() + " type");
+        });
         functions.put("len", args -> {
             if (args.size() != 1) throw new StandardLibraryException("len() expects 1 argument, but got " + args.size());
             Value arg = args.get(0);
