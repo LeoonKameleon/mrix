@@ -203,12 +203,12 @@ public class StandardLibrary {
             throw new StandardLibraryException("rows() does not support " + arg.getType() + " type");
         });
         functions.put("cols", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("rows() expects 1 argument, but got " + args.size());
+            if (args.size() != 1) throw new StandardLibraryException("cols() expects 1 argument, but got " + args.size());
             Value arg = args.get(0);
             if (arg.getType() == MATRIX) {
                 return Value.of(arg.toMatrix()[0].length);
             }
-            throw new StandardLibraryException("rows() does not support " + arg.getType() + " type");
+            throw new StandardLibraryException("cols() does not support " + arg.getType() + " type");
         });
         functions.put("sum", args -> {
             if (args.isEmpty()) throw new StandardLibraryException("sum() expects at least 1 argument");
@@ -276,7 +276,7 @@ public class StandardLibrary {
             int count = 0;
             for (Value arg : args) {
                 if (arg.getType() == STRING || arg.getType() == FUNCTION)
-                    throw new StandardLibraryException("sum() does not support " + arg.getType() + " type");
+                    throw new StandardLibraryException("mean() does not support " + arg.getType() + " type");
                 if (arg.getType() == MATRIX) {
                     for (double[] row : arg.toMatrix())
                         for (double val : row) {
@@ -337,7 +337,7 @@ public class StandardLibrary {
                 }
                 return new Value(string.toString().substring((int) idx, (int) idx + 1), STRING);
             }
-            throw new StandardLibraryException("pow() does not support " + string.getType() + " and " + index.getType());
+            throw new StandardLibraryException("at() does not support " + string.getType() + " and " + index.getType());
         });
         functions.put("contains", args -> {
             if (args.size() != 2) throw new StandardLibraryException("contains() expects 2 arguments, but got " + args.size());
@@ -392,7 +392,7 @@ public class StandardLibrary {
                 return new Value((double) arg.toLong(), FLOAT);
             }
             if (arg.getType() == BOOL) {
-                return Value.of(arg.toLong());
+                return new Value((double) arg.toLong(), FLOAT);
             }
             if (arg.getType() == FLOAT) {
                 return arg;
@@ -420,10 +420,10 @@ public class StandardLibrary {
             if (args.size() != 1) throw new StandardLibraryException("bool() expects 1 argument, but got " + args.size());
             Value arg = args.get(0);
             if (arg.getType() == INT) {
-                return new Value(arg.toLong() == 1, BOOL);
+                return new Value(arg.toLong() != 0, BOOL);
             }
             if (arg.getType() == FLOAT) {
-                return new Value(arg.toDouble() == 1.0, BOOL);
+                return new Value(arg.toDouble() != 0.0, BOOL);
             }
             if (arg.getType() == BOOL) {
                 return arg;
@@ -442,15 +442,15 @@ public class StandardLibrary {
             }
         });
         functions.put("f_readline", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("readline() expects 2 arguments, but got " + args.size());
-            if (args.get(0).getType() != STRING) throw new StandardLibraryException("readline() expects STRING as first argument");
-            if (args.get(1).getType() != INT) throw new StandardLibraryException("readline() expects INT as second argument");
+            if (args.size() != 2) throw new StandardLibraryException("f_readline() expects 2 arguments, but got " + args.size());
+            if (args.get(0).getType() != STRING) throw new StandardLibraryException("f_readline() expects STRING as first argument, but got" + args.get(0).getType());
+            if (args.get(1).getType() != INT) throw new StandardLibraryException("f_readline() expects INT as second argument, but  got" + args.get(1).getType());
             String path = args.get(0).toString();
-            int n = args.get(1).toInt();
+            long n = args.get(1).toLong();
             try {
                 List<String> lines = Files.readAllLines(resolvePath(path));
-                if (n < 0 || n >= lines.size()) throw new StandardLibraryException("readline() line index out of bounds");
-                return new Value(lines.get(n), STRING);
+                if (n < 0 || n >= lines.size()) throw new StandardLibraryException("f_readline() line index out of bounds");
+                return new Value(lines.get((int) n), STRING);
             } catch (IOException e) {
                 throw new StandardLibraryException("f_readline() cannot read file: " + e.getMessage());
             }
@@ -461,7 +461,7 @@ public class StandardLibrary {
             try {
                 return Value.of(java.nio.file.Files.readAllLines(resolvePath(args.get(0).toString())).size());
             } catch (java.io.IOException e) {
-                throw new StandardLibraryException("f_lines() cannot write to file: " + e.getMessage());
+                throw new StandardLibraryException("f_lines() cannot read from file: " + e.getMessage());
             }
         });
         functions.put("f_append", args -> {
@@ -487,7 +487,7 @@ public class StandardLibrary {
                 Files.writeString(resolvePath(path), content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
                 return Value.NULL;
             } catch (IOException e) {
-                throw new StandardLibraryException("f_write() cannot append to file: " + e.getMessage());
+                throw new StandardLibraryException("f_write() cannot write to file: " + e.getMessage());
             }
         });
     }

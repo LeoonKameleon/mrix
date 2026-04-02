@@ -23,3 +23,21 @@ funct fibonacci(x) {
     }
     return fibonacci(x-1) + fibonacci(x-2);
 }
+
+print ln(10);
+print round(1.123456789, 3);
+print sin(3.14159265358979323846264338327950/2);
+
+x = 5;
+x %= 2;
+print x;
+
+a = 1;
+b = 2;
+funct foo(b, a) { return b - a; }
+print foo(a, b);
+
+
+i = 0;
+funct next() { i += 1; return i < 5; }
+while (next()) { print i; }
