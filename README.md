@@ -1,7 +1,7 @@
 # Mrix Programming Language
 
 <p align="justify">
-Mrix is a dynamically-typed programming language which supports standard control structures, user-defined functions, and built-in support for matrix operations. This repository contains the source code for the interpreter written in Java.
+Mrix is a dynamically-typed scripting language which supports standard control structures, user-defined functions, and built-in support for matrix operations. This repository contains the source code for the interpreter written in Java.
 </p>
 
 ## Code Example
