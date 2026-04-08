@@ -15,9 +15,16 @@ public class Mrix {
     private static final boolean hadError = false;
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.out.println("Usage: mrix <filename>");
+        if (args.length == 0) {
+            System.out.println("Usage: mrix <filename> OR mrix -c \"<code>\"");
             System.exit(1);
+        } else if (args[0].equals("-c")) {
+            if (args.length < 2) {
+                System.out.println("Error: No code provided after -c");
+                System.exit(1);
+            }
+            String code = args[1];
+            run(code, Paths.get(".").toAbsolutePath());
         } else if (args[0].endsWith(".mrix")) {
             runFile(args[0]);
         } else {
