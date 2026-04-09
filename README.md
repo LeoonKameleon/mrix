@@ -43,3 +43,7 @@ You can run .mrix files using:
 ```bash
 java -jar target/mrix.jar /path/to/file.mrix
 ```
+or execute a code snippet directly from the command line:
+```bash
+java -jar target/mrix.jar -c "for i = 0:10 { print i; }"
+```
