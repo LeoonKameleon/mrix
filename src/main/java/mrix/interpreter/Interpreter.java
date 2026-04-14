@@ -288,7 +288,11 @@ public class Interpreter implements InterpreterVisitor {
         VariableNode variable = (VariableNode) node.getVariable();
         switch (node.getOp().getTokenType()) {
             case ASSIGN:
-                assignToVariable(variable, value, true);
+                if (memory.get(variable.getId().getLexeme()) != null) {
+                    assignToVariable(variable, value, false);
+                } else {
+                    assignToVariable(variable, value, true);
+                }
                 break;
             case ADD_ASSIGN: {
                 Token op = new Token(ADD, "+", null, node.getOp().getLine());

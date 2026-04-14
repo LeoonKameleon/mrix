@@ -41,3 +41,10 @@ print foo(a, b);
 i = 0;
 funct next() { i += 1; return i < 5; }
 while (next()) { print i; }
+
+
+a = "";
+if (a == "") {
+    a = "abc";
+}
+print a;
