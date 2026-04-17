@@ -48,3 +48,10 @@ if (a == "") {
     a = "abc";
 }
 print a;
+
+
+funct test(a) {
+    print a';
+}
+
+test([[1, 2], [3, 4]]);

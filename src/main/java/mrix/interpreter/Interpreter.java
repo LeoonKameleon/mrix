@@ -372,16 +372,26 @@ public class Interpreter implements InterpreterVisitor {
         Token op = node.getOp();
         Value value = node.getPrimary().accept(this);
         if (op == null) return value;
-        if (op.getTokenType() == TRANSPOSE && value.getType() == MATRIX) {
+        if (op.getTokenType() == TRANSPOSE) {
+            if (value.getType() != MATRIX) {
+                throw new MrixRuntimeException(
+                    "Transpose operator expected MATRIX, but got: " + value.getType(),
+                    op.getLine()
+                );
+            }
+
             double[][] matrix = value.toMatrix();
             int rows = matrix.length;
             int cols = matrix[0].length;
+
             double[][] result = new double[cols][rows];
-            for (int i=0; i<rows; i++) {
-                for (int j=0; j<cols; j++) {
+
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
                     result[j][i] = matrix[i][j];
                 }
             }
+
             return new Value(result, MATRIX);
         }
         throw new MrixRuntimeException("Unknown postfix operator: '" + op.getLexeme() + "'", op.getLine());

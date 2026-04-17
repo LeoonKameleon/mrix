@@ -150,7 +150,10 @@ public class TypeChecker implements NodeVisitor {
         Token op = node.getOp();
         DataType type = node.getPrimary().accept(this);
         if (op == null) return type;
-        if (op.getTokenType() == TRANSPOSE && type == MATRIX) return MATRIX;
+        if (op.getTokenType() == TRANSPOSE) {
+            if (type == MATRIX) return MATRIX;
+            if (type == ANY) return ANY;
+        }
         errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + TRANSPOSE + "': " + type);
         return UNKNOWN;
     }
