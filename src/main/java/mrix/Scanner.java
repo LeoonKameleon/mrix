@@ -77,6 +77,23 @@ public class Scanner {
                         position++;
                     }
                 } else addToken(check('=') ? DIV_ASSIGN : DIV); break;
+            case '.': 
+                if (check('+')) {
+                    addToken(DOT_ADD);
+                    break;
+                }
+                if (check('-')) {
+                    addToken(DOT_SUB);
+                    break;
+                }
+                if (check('*')) {
+                    addToken(DOT_MUL);
+                    break;
+                }
+                if (check('/')) {
+                    addToken(DOT_DIV);
+                    break;
+                }
             case '"': addStringToken(); break;
             case ' ':
             case '\r':
