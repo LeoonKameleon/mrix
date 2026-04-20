@@ -62,7 +62,7 @@ public class Value {
     }
 
     public String toString() {
-        return (String) value;
+        return String.valueOf(value);
     }
 
     public boolean toBoolean() {
@@ -71,5 +71,9 @@ public class Value {
 
     public double[][] toMatrix() {
         return (double[][]) value;
+    }
+
+    public TupleValue toTuple() {
+        return (TupleValue) value;
     }
 }

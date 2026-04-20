@@ -50,6 +50,9 @@ public class Interpreter implements InterpreterVisitor {
             }
             return sb.toString();
         }
+        if (v.getType() == TUPLE) {
+            return ((TupleValue) v.getValue()).toString();
+        }
         return String.valueOf(v.getValue());
     }
 
@@ -60,6 +63,12 @@ public class Interpreter implements InterpreterVisitor {
             throw new MrixRuntimeException("Undefined variable: '" + name + "'", variable.getLine());
         }
         if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
+            if (value.getType() == TUPLE) {
+                TupleValue tuple = (TupleValue) value.getValue();
+                int idx = toIndex(variable.getExpressionList().get(0).accept(this), tuple.getValues().size(), variable.getLine());
+                return tuple.getValues().get(idx);
+            }
+
             double[][] matrix = value.toMatrix();
             if (matrix.length == 1) {
                 int col = toIndex(variable.getExpressionList().get(0).accept(this), matrix[0].length, variable.getLine());
@@ -75,8 +84,18 @@ public class Interpreter implements InterpreterVisitor {
     private Value applyOp(Value left, Token op, Value right) {
         switch (op.getTokenType()) {
             case EQ:
+                if (left.getType() == TUPLE && right.getType() == TUPLE) {
+                    return Value.of(
+                        left.toTuple().equals(right.toTuple())
+                    );
+                }
                 return new Value(left.getValue().equals(right.getValue()), BOOL);
             case NOT_EQ:
+                if (left.getType() == TUPLE && right.getType() == TUPLE) {
+                    return Value.of(
+                        !left.toTuple().equals(right.toTuple())
+                    );
+                }
                 return new Value(!left.getValue().equals(right.getValue()), BOOL);
             case GREATER:
                 return new Value(left.toDouble() > right.toDouble(), BOOL);
@@ -268,59 +287,83 @@ public class Interpreter implements InterpreterVisitor {
             if (existing == null) {
                 throw new MrixRuntimeException("Undefined variable '" + name + "'", variable.getId().getLine());
             }
-            double[][] matrix = existing.toMatrix();
-            if (matrix.length == 1) {
-                int col = toIndex(variable.getExpressionList().get(0).accept(this), matrix[0].length, variable.getLine());
-                matrix[0][col] = value.toDouble();
-            } else {
-                int row = toIndex(variable.getExpressionList().get(0).accept(this), matrix.length, variable.getLine());
-                int col = toIndex(variable.getExpressionList().get(1).accept(this), matrix[0].length, variable.getLine());
-                matrix[row][col] = value.toDouble();
+            if (existing.getType() == TUPLE) {
+                throw new MrixRuntimeException("Tuples are immutable. Cannot assign to element of '" + name + "'", variable.getLine());
             }
-        } else {
-            if (isNew) memory.put(name, value);
-            else memory.set(name, value);
+            if (existing.getType() == MATRIX) {
+                double[][] matrix = existing.toMatrix();
+                if (matrix.length == 1) {
+                    int col = toIndex(variable.getExpressionList().get(0).accept(this), matrix[0].length, variable.getLine());
+                    matrix[0][col] = value.toDouble();
+                } else {
+                    int row = toIndex(variable.getExpressionList().get(0).accept(this), matrix.length, variable.getLine());
+                    int col = toIndex(variable.getExpressionList().get(1).accept(this), matrix[0].length, variable.getLine());
+                    matrix[row][col] = value.toDouble();
+                }
+                return;
+            }
         }
+        if (isNew) memory.put(name, value);
+        else memory.set(name, value);
     }
 
     public Value visitAssignNode(AssignNode node) {
         Value value = node.getExpression().accept(this);
-        VariableNode variable = (VariableNode) node.getVariable();
-        switch (node.getOp().getTokenType()) {
-            case ASSIGN:
-                if (memory.get(variable.getId().getLexeme()) != null) {
-                    assignToVariable(variable, value, false);
-                } else {
-                    assignToVariable(variable, value, true);
+        if (node.getVariable() instanceof TuplePatternNode pattern) {
+            if (value.getType() != TUPLE) {
+                throw new MrixRuntimeException("Cannot unpack non-tuple type: " + value.getType(), node.getLine());
+            }
+            
+            List<Value> elements = ((TupleValue) value.getValue()).getValues();
+            List<Token> ids = pattern.getIds();
+
+            if (elements.size() != ids.size()) {
+                throw new MrixRuntimeException("Tuple size mismatch. Expected " + elements.size() + " elements, got " + ids.size(), node.getLine());
+            }
+
+            for (int i = 0; i < ids.size(); i++) {
+                memory.put(ids.get(i).getLexeme(), elements.get(i));
+            }
+            return value;
+        }
+        if (node.getVariable() instanceof VariableNode variable) {
+            switch (node.getOp().getTokenType()) {
+                case ASSIGN:
+                    if (memory.get(variable.getId().getLexeme()) != null) {
+                        assignToVariable(variable, value, false);
+                    } else {
+                        assignToVariable(variable, value, true);
+                    }
+                    break;
+                case ADD_ASSIGN: {
+                    Token op = new Token(ADD, "+", null, node.getOp().getLine());
+                    assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
+                    break;
                 }
-                break;
-            case ADD_ASSIGN: {
-                Token op = new Token(ADD, "+", null, node.getOp().getLine());
-                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
-                break;
+                case SUB_ASSIGN: {
+                    Token op = new Token(SUB, "-", null, node.getOp().getLine());
+                    assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
+                    break;
+                }
+                case MUL_ASSIGN: {
+                    Token op = new Token(MUL, "*", null, node.getOp().getLine());
+                    assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
+                    break;
+                }
+                case DIV_ASSIGN: {
+                    Token op = new Token(DIV, "/", null, node.getOp().getLine());
+                    assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
+                    break;
+                }
+                case MOD_ASSIGN: {
+                    Token op = new Token(MOD, "/", null, node.getOp().getLine());
+                    assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
+                    break;
+                }
+                default:
+                    throw new MrixRuntimeException("Unknown assignment operator: '" + node.getOp().getLexeme()+ "'", node.getOp().getLine());
             }
-            case SUB_ASSIGN: {
-                Token op = new Token(SUB, "-", null, node.getOp().getLine());
-                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
-                break;
-            }
-            case MUL_ASSIGN: {
-                Token op = new Token(MUL, "*", null, node.getOp().getLine());
-                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
-                break;
-            }
-            case DIV_ASSIGN: {
-                Token op = new Token(DIV, "/", null, node.getOp().getLine());
-                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
-                break;
-            }
-            case MOD_ASSIGN: {
-                Token op = new Token(MOD, "/", null, node.getOp().getLine());
-                assignToVariable(variable, applyOp(getVariable(variable), op, value), false);
-                break;
-            }
-            default:
-                throw new MrixRuntimeException("Unknown assignment operator: '" + node.getOp().getLexeme()+ "'", node.getOp().getLine());
+            return null;
         }
         return null;
     }
@@ -635,6 +678,19 @@ public class Interpreter implements InterpreterVisitor {
             throw new MrixRuntimeException("Cannot import file '" + path + "'", node.getLine());
         }
         return null;
+    }
+
+    public Value visitTupleNode(TupleNode node ) {
+        List<Value> values = new ArrayList<>();
+        
+        for (Node element : node.getElements()) {
+            values.add(element.accept(this));
+        }
+        return new Value(new TupleValue(values), DataType.TUPLE);
+    }
+
+    public Value visitTuplePatternNode(TuplePatternNode node) {
+        return null; 
     }
 
     public void finish() {

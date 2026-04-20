@@ -25,4 +25,6 @@ public interface NodeVisitor {
     DataType visitVariableNode(VariableNode node);
     DataType visitWhileNode(WhileNode node);
     DataType visitImportNode(ImportNode node);
+    DataType visitTupleNode(TupleNode node);
+    DataType visitTuplePatternNode(TuplePatternNode node);
 }

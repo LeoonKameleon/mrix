@@ -156,15 +156,21 @@ public class Parser {
     }
 
     private Node parseAssignStatement() {
-        Node variable = parseVariable();
+        Node left = parseLValue();
         Token op = consume();
-        if (op.getTokenType() == ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
-        if (op.getTokenType() == ADD_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
-        if (op.getTokenType() == SUB_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
-        if (op.getTokenType() == MUL_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
-        if (op.getTokenType() == DIV_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
-        if (op.getTokenType() == MOD_ASSIGN) return new AssignNode(variable, op, parseExpression(), op.getLine());
-        throw new RuntimeException("Expected assignment operator");
+        Node right = parseExpression();
+
+        switch (op.getTokenType()) {
+            case ASSIGN:
+            case ADD_ASSIGN:
+            case SUB_ASSIGN:
+            case MUL_ASSIGN:
+            case DIV_ASSIGN:
+            case MOD_ASSIGN:
+                return new AssignNode(left, op, right, op.getLine());
+            default:
+                throw new RuntimeException("Expected assignment operator");
+        }
     }
 
     private Node parseVariable() {
@@ -260,10 +266,32 @@ public class Parser {
             return new PrimaryNode(value, value.getLine());
         }
         if (check(LEFT_PAREN)) {
-            consume();
-            Node expression = parseExpression();
+            Token t = consume();
+
+            if (check(RIGHT_PAREN)) {
+                consume();
+                return new TupleNode(new ArrayList<>(), t.getLine());
+            }
+
+            Node first = parseExpression();
+
+            if (check(COMMA)) {
+                List<Node> elements = new ArrayList<>();
+                elements.add(first);
+
+                while (check(COMMA)) {
+                    consume();
+
+                    if (check(RIGHT_PAREN)) break;
+                    elements.add(parseExpression());
+                }
+
+                expect(RIGHT_PAREN);
+                return new TupleNode(elements, t.getLine());
+            }
+
             expect(RIGHT_PAREN);
-            return expression;
+            return first;
         }
         if (check(LEFT_BRACK)) return parseMatrix();
         if (check(EYE) || check(ZEROS) || check(ONES)) return parseCreateMatrix();
@@ -353,5 +381,27 @@ public class Parser {
         int index = position + steps;
         if (index >= size) return tokens.get(size-1);
         return tokens.get(index);
+    }
+
+    private Node parseLValue() {
+        if (check(LEFT_PAREN)) {
+            Token t = consume();
+            List<Token> ids = new ArrayList<>();
+
+            if (!check(RIGHT_PAREN)) {
+                ids.add(expect(ID));
+
+                while (check(COMMA)) {
+                    consume();
+                    if (check(RIGHT_PAREN)) break;
+                    ids.add(expect(ID));
+                }
+            }
+
+            expect(RIGHT_PAREN);
+            return new TuplePatternNode(ids, t.getLine());
+        }
+
+        return parseVariable();
     }
 }

@@ -54,4 +54,26 @@ funct test(a) {
     print a';
 }
 
-test([[1, 2], [3, 4]]);
+test([[1, 2], [3, 4]]); // wazne
+
+A = [[1, 2], [3, 4]];
+print A .* A;
+
+funct get_data() {
+    return (1, [[1, 2], [3, 4]]);
+}
+
+(id, mat) = get_data();
+print "ID:", id;
+print "Matrix squared:";
+print mat * mat;
+
+(a, b, c, d) = (1, 2, 3, (4, 5));
+print a;
+print b;
+print d;
+
+a = (1, 2, 3);
+for i = 0:2 {
+    print a[i];
+}

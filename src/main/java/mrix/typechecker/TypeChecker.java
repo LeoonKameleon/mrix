@@ -41,14 +41,107 @@ public class TypeChecker implements NodeVisitor {
             errors.add("Line " + node.getId().getLine() + ": Undefined variable '" + node.getId().getLexeme() + "'");
             return UNKNOWN;
         } 
-        return symbol.getType();
+        DataType type = symbol.getType();
+        List<Node> indices = node.getExpressionList();
+
+        if (indices == null || indices.isEmpty()) {
+            return type;
+        }
+
+        for (Node indexExpr : indices) {
+            DataType indexType = indexExpr.accept(this);
+            if (indexType != INT && indexType != ANY) {
+                errors.add("Line " + node.getLine() + ": Index must be INT, but got " + indexType);
+            }
+        }
+
+        if (type == TUPLE) {
+            if (indices.size() > 1) {
+                errors.add("Line " + node.getLine() + ": Tuples support only 1D indexing");
+            }
+            return ANY; 
+        }
+
+        if (type == MATRIX) {
+            return FLOAT; 
+        }
+
+        if (type == ANY) {
+            return ANY;
+        }
+
+        errors.add("Line " + node.getLine() + ": Type " + type + " does not support indexing");
+        return UNKNOWN;
     }
 
     public DataType visitAssignNode(AssignNode node) {
-        DataType type = node.getExpression().accept(this);
-        VariableNode variable = (VariableNode) node.getVariable();
-        String name = variable.getId().getLexeme();
-        table.put(name, new VariableSymbol(name, type));
+        DataType rightSideType = node.getExpression().accept(this);
+
+        if (node.getVariable() instanceof TuplePatternNode pattern) {
+            List<Token> ids = pattern.getIds();
+
+            if (rightSideType != TUPLE && rightSideType != ANY) {
+                errors.add("Line " + node.getLine() + ": Cannot unpack non-tuple type: " + rightSideType);
+                return UNKNOWN;
+            }
+
+            if (node.getExpression() instanceof TupleNode tupleNode) {
+                List<Node> elements = tupleNode.getElements();
+                if (ids.size() != elements.size()) {
+                    errors.add("Line " + node.getLine() + ": Tuple size mismatch. Expected " + 
+                            elements.size() + ", got " + ids.size());
+                }
+                for (int i = 0; i < Math.min(ids.size(), elements.size()); i++) {
+                    DataType elementType = elements.get(i).accept(this);
+                    table.put(ids.get(i).getLexeme(), new VariableSymbol(ids.get(i).getLexeme(), elementType));
+                }
+            } else {
+                for (Token id : ids) {
+                    table.put(id.getLexeme(), new VariableSymbol(id.getLexeme(), ANY));
+                }
+            }
+            return rightSideType;
+        }
+
+        if (node.getVariable() instanceof VariableNode varNode) {
+            String name = varNode.getId().getLexeme();
+            List<Node> indices = varNode.getExpressionList();
+
+            if (indices == null || indices.isEmpty()) {
+                table.put(name, new VariableSymbol(name, rightSideType));
+                return rightSideType;
+            } 
+            
+            else {
+                VariableSymbol symbol = table.get(name);
+                if (symbol == null) {
+                    errors.add("Line " + node.getLine() + ": Undefined variable '" + name + "'");
+                    return UNKNOWN;
+                }
+
+                DataType currentType = symbol.getType();
+
+                if (currentType != TUPLE && currentType != MATRIX && currentType != ANY) {
+                    errors.add("Line " + node.getLine() + ": Cannot assign to element of type " + currentType);
+                }
+
+                for (Node indexExpr : indices) {
+                    DataType indexType = indexExpr.accept(this);
+                    if (indexType != INT && indexType != ANY) {
+                        errors.add("Line " + node.getLine() + ": Index must be INT");
+                    }
+                }
+
+                return rightSideType;
+            }
+        }
+
+        if (node.getVariable() instanceof VariableNode variable) {
+            String name = variable.getId().getLexeme();
+            table.put(name, new VariableSymbol(name, rightSideType));
+            return rightSideType;
+        }
+
         return UNKNOWN;
     }
 
@@ -58,7 +151,15 @@ public class TypeChecker implements NodeVisitor {
         Token op = node.getOp();
         if (leftType == ANY || rightType == ANY) return ANY;
         if (leftType == UNKNOWN || rightType == UNKNOWN) return UNKNOWN;
-        switch (op.getTokenType()) {
+
+        TokenType opType = op.getTokenType();
+        if (opType != EQ && opType != NOT_EQ) {
+            if (leftType == TUPLE || rightType == TUPLE) {
+                errors.add("Line " + op.getLine() + ": Operator '" + opType + "' not supported for tuple");
+                return UNKNOWN;
+            }
+        }
+        switch (opType) {
             case AND:
             case OR: 
                 if (leftType == BOOL && rightType == BOOL) return BOOL;
@@ -139,6 +240,10 @@ public class TypeChecker implements NodeVisitor {
             return UNKNOWN;
         }
         if (op.getTokenType() == SUB) {
+            if (type == TUPLE) {
+                errors.add("Line " + op.getLine() + ": Unary minus not supported for tuple");
+                return UNKNOWN;
+            }
             if (type != DataType.STRING) return type;
             errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + SUB + "': " + type);
             return UNKNOWN;
@@ -153,9 +258,10 @@ public class TypeChecker implements NodeVisitor {
         if (op.getTokenType() == TRANSPOSE) {
             if (type == MATRIX) return MATRIX;
             if (type == ANY) return ANY;
+            errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + TRANSPOSE + "': " + type);
+            return UNKNOWN;
         }
-        errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + TRANSPOSE + "': " + type);
-        return UNKNOWN;
+        return type;
     }
 
     public DataType visitMatrixNode(MatrixNode node) {
@@ -163,13 +269,13 @@ public class TypeChecker implements NodeVisitor {
         for (List<Node> row : node.getRows()) {
             if (rowLength == -1) rowLength = row.size();
             else if (rowLength != row.size()) {
-                errors.add("Matrix rows have different lengths");
+                errors.add("Line " + node.getLine() + ": Matrix rows have different lengths");
                 return UNKNOWN;
             }
             for (Node element : row) {
                 DataType type = element.accept(this);
                 if (type == MATRIX || type == DataType.STRING) {
-                    errors.add("Invalid element type in matrix: " + type);
+                    errors.add("Line " + element.getLine() + "Invalid element type in matrix: " + type);
                     return UNKNOWN;
                 }
             }
@@ -181,7 +287,7 @@ public class TypeChecker implements NodeVisitor {
         for (Node element : node.getExpressionList()) {
             DataType type = element.accept(this);
             if (type == MATRIX || type == DataType.STRING) {
-                errors.add("Invalid element type in flat matrix: " + type);
+                errors.add("Line " + element.getLine() + ": Invalid element type in flat matrix: " + type);
                 return UNKNOWN;
             }
         }
@@ -197,7 +303,7 @@ public class TypeChecker implements NodeVisitor {
                     Node size = expressionList.get(0);
                     DataType type = size.accept(this);
                     if (type == INT || type == ANY) return MATRIX;
-                    errors.add("Invalid eye size type: " + type);
+                    errors.add("Line " + size.getLine() + ": Invalid eye size type: " + type);
                 }
             case ZEROS:
             case ONES:
@@ -205,7 +311,7 @@ public class TypeChecker implements NodeVisitor {
                     Node size = expressionList.get(0);
                     DataType type = size.accept(this);
                     if (type == INT || type == ANY) return MATRIX;
-                    errors.add("Invalid matrix size type: " + type);
+                    errors.add("Line " + size.getLine() + ": Invalid matrix size type: " + type);
                 }
             default:
                 return UNKNOWN;
@@ -215,7 +321,7 @@ public class TypeChecker implements NodeVisitor {
     public DataType visitIfNode(IfNode node) {
         DataType type = node.getCondition().accept(this);
         if (type != BOOL && type != ANY) {
-            errors.add("If condition must be BOOL, got: " + type);
+            errors.add("Line " + node.getLine() + ": If condition must be BOOL, but got: " + type);
         }
         node.getThenNode().accept(this);
         if (node.getElseNode() != null) node.getElseNode().accept(this);
@@ -225,7 +331,7 @@ public class TypeChecker implements NodeVisitor {
     public DataType visitWhileNode(WhileNode node) {
         DataType type = node.getCondition().accept(this);
         if (type != BOOL && type != ANY) {
-            errors.add("While condition must be BOOL, got: " + type);
+            errors.add("Line " + node.getLine() + ": While condition must be BOOL, but got: " + type);
         }
         table = table.pushScope();
         loopDepth++;
@@ -247,21 +353,21 @@ public class TypeChecker implements NodeVisitor {
             loopDepth--;
             table = table.popScope();
         } else if (rangeStartType != ANY && rangeEndType != ANY) {
-            errors.add("For loop range values must be INT, got: " + rangeStartType + " and " + rangeEndType);
+            errors.add("Line " + node.getLine() + ": For loop range values must be INT, but got: " + rangeStartType + " and " + rangeEndType);
         }
         return null;
     }
 
     public DataType visitBreakNode(BreakNode node) {
         if (loopDepth <= 0) {
-            errors.add("Break statement outside of loop");
+            errors.add("Line " + node.getLine() + ": Break statement outside of loop");
         }
         return null;
     }
 
     public DataType visitContinueNode(ContinueNode node) {
         if (loopDepth <= 0) {
-            errors.add("Continue statement outside of loop");
+            errors.add("Line " + node.getLine() + ": Continue statement outside of loop");
         }
         return null;
     }
@@ -315,11 +421,11 @@ public class TypeChecker implements NodeVisitor {
         if (stdlib.has(id.getLexeme())) return ANY;
         VariableSymbol symbol = table.get(id.getLexeme());
         if (symbol == null) {
-            errors.add("Line " + node.getId().getLine() + ": Undefined function '" + id.getLexeme() + "'");
+            errors.add("Line " + node.getLine() + ": Undefined function '" + id.getLexeme() + "'");
             return UNKNOWN;
         }
         if (symbol.getType() != DataType.FUNCTION) {
-            errors.add("Line " + node.getId().getLine() + ": '" + id.getLexeme() + "' is not a function");
+            errors.add("Line " + node.getLine() + ": '" + id.getLexeme() + "' is not a function");
             return UNKNOWN;
         }
         for (Node argument : node.getExpressionList()) {
@@ -346,6 +452,17 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitExpressionNode(ExpressionNode node) {
         return node.getOrExpression().accept(this);
+    }
+
+    public DataType visitTupleNode(TupleNode node) {
+        for (Node element : node.getElements()) {
+            element.accept(this);
+        }
+        return TUPLE;
+    }
+
+    public DataType visitTuplePatternNode(TuplePatternNode node) {
+        return UNKNOWN; 
     }
 
     public List<String> getErrors() {

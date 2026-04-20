@@ -25,4 +25,6 @@ public interface InterpreterVisitor {
     Value visitVariableNode(VariableNode node);
     Value visitWhileNode(WhileNode node);
     Value visitImportNode(ImportNode node);
+    Value visitTupleNode(TupleNode node);
+    Value visitTuplePatternNode(TuplePatternNode node);
 }
