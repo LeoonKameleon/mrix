@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
 import mrix.exceptions.StandardLibraryException;
+import mrix.interpreter.TupleValue;
 import mrix.interpreter.Value;
 import static mrix.typechecker.DataType.*;
 import mrix.typechecker.DataType;
@@ -186,11 +188,10 @@ public class StandardLibrary {
             Value arg = args.get(0);
             if (arg.getType() == MATRIX) {
                 double[][] matrix = arg.toMatrix();
-                int rows = matrix.length, cols = matrix[0].length;
-                double[][] result = new double[1][2];
-                result[0][0] = rows;
-                result[0][1] = cols;
-                return new Value(result, MATRIX);
+                int r = matrix.length;
+                int c = (r > 0) ? matrix[0].length : 0;
+                TupleValue result = new TupleValue(List.of(Value.of(r), Value.of(c)));
+                return Value.of(result);
             }
             throw new StandardLibraryException("size() does not support " + arg.getType() + " type");
         });
@@ -329,6 +330,9 @@ public class StandardLibrary {
                 double[][] m = arg.toMatrix();
                 return Value.of((long) m.length * m[0].length);
             }
+            if (arg.getType() == TUPLE) {
+                return Value.of(arg.toTuple().getValues().size());
+            }
             if (arg.getType() == STRING) {
                 return Value.of(arg.toString().length());
             }
@@ -362,6 +366,11 @@ public class StandardLibrary {
                     }
                 }
                 return new Value(false, BOOL);
+            }
+            if (array.getType() == TUPLE) {
+                TupleValue tuple = array.toTuple();
+                boolean found = tuple.getValues().contains(element); 
+                return Value.of(found);
             }
             throw new StandardLibraryException("contains() does not support " + array.getType() + " and " + element.getType());
         });
@@ -437,6 +446,56 @@ public class StandardLibrary {
                 return arg;
             }
             throw new StandardLibraryException("bool() does not support " + arg.getType() + " type");
+        });
+        functions.put("tuple", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("tuple() expects 1 argument, but got " + args.size());
+            Value arg = args.get(0);
+            if (arg.getType() == MATRIX) {
+                double[][] matrix = arg.toMatrix();
+                List<Value> tupleRows = new ArrayList<>();
+
+                for (double[] row : matrix) {
+                    List<Value> rowElements = new ArrayList<>();
+                    for (double val : row) {
+                        rowElements.add(new Value(val, FLOAT));
+                    }
+                    tupleRows.add(Value.of(new TupleValue(rowElements)));
+                }
+                return Value.of(new TupleValue(tupleRows));
+            }
+            if (arg.getType() == STRING) {
+                String s = arg.toString();
+                List<Value> chars = new ArrayList<>();
+                for (char c : s.toCharArray()) {
+                    chars.add(new Value(String.valueOf(c), STRING));
+                }
+                return Value.of(new TupleValue(chars));
+            }
+            if (arg.getType() == TUPLE) {
+                return arg;
+            }
+            return Value.of(new TupleValue(List.of(arg)));
+        });
+        functions.put("matrix", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("matrix() expects 1 argument, but got " + args.size());
+            if (args.get(0).getType() != TUPLE) throw new StandardLibraryException("matrix() expects TUPLE, but got " + args.get(0).getType());
+
+            TupleValue t = args.get(0).toTuple();
+            int rows = t.size();
+            if (rows == 0) return new Value(new double[0][0], MATRIX);
+
+            boolean is2D = t.get(0).getType() == TUPLE;
+            int cols = is2D ? t.get(0).toTuple().size() : rows;
+            double[][] data = new double[is2D ? rows : 1][cols];
+
+            for (int i = 0; i < (is2D ? rows : 1); i++) {
+                TupleValue row = is2D ? t.get(i).toTuple() : t;
+                if (row.size() != cols) throw new StandardLibraryException("matrix() inconsistent tuple dimensions");
+                for (int j = 0; j < cols; j++) {
+                    data[i][j] = row.get(j).toDouble();
+                }
+            }
+            return new Value(data, MATRIX);
         });
         functions.put("f_read", args -> {
             if (args.size() != 1) throw new StandardLibraryException("f_read() expects 1 argument, but got " + args.size());

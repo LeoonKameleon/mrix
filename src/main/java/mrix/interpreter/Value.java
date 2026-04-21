@@ -39,6 +39,10 @@ public class Value {
         return new Value(l, DataType.INT);
     }
 
+    public static Value of(TupleValue t) {
+        return new Value(t, DataType.TUPLE);
+    }
+
     public Object getValue() {
         return value;
     }
