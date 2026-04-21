@@ -6,13 +6,13 @@ import static mrix.typechecker.DataType.*;
 import java.util.Objects;
 
 public class Value {
-    private Object value;
+    private final Object value;
     private final DataType type;
 
     public static final Value TRUE = new Value(Boolean.TRUE, DataType.BOOL);
     public static final Value FALSE = new Value(Boolean.FALSE, DataType.BOOL);
     public static final Value NULL = new Value(null, DataType.UNKNOWN);
-    
+
     private static final int CACHE_LOW = -4096;
     private static final int CACHE_HIGH = 4095;
     private static final Value[] LONG_CACHE = new Value[(CACHE_HIGH - CACHE_LOW) + 1];

@@ -7,7 +7,7 @@ import mrix.tokens.Token;
 import mrix.typechecker.DataType;
 
 public class TuplePatternNode extends AbstractNode {
-    private List<Token> ids;
+    private final List<Token> ids;
 
     public TuplePatternNode(List<Token> ids, int line) {
         super(line);

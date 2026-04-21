@@ -109,8 +109,7 @@ public class TypeChecker implements NodeVisitor {
 
             if (indices == null || indices.isEmpty()) {
                 table.put(name, new VariableSymbol(name, rightSideType));
-                return rightSideType;
-            } 
+            }
             
             else {
                 VariableSymbol symbol = table.get(name);
@@ -132,8 +131,8 @@ public class TypeChecker implements NodeVisitor {
                     }
                 }
 
-                return rightSideType;
             }
+            return rightSideType;
         }
 
         if (node.getVariable() instanceof VariableNode variable) {
@@ -300,7 +299,7 @@ public class TypeChecker implements NodeVisitor {
         switch (fun.getTokenType()) {
             case EYE:
                 if (expressionList.size() == 1) {
-                    Node size = expressionList.get(0);
+                    Node size = expressionList.getFirst();
                     DataType type = size.accept(this);
                     if (type == INT || type == ANY) return MATRIX;
                     errors.add("Line " + size.getLine() + ": Invalid eye size type: " + type);
@@ -308,7 +307,7 @@ public class TypeChecker implements NodeVisitor {
             case ZEROS:
             case ONES:
                 if (!expressionList.isEmpty()) {
-                    Node size = expressionList.get(0);
+                    Node size = expressionList.getFirst();
                     DataType type = size.accept(this);
                     if (type == INT || type == ANY) return MATRIX;
                     errors.add("Line " + size.getLine() + ": Invalid matrix size type: " + type);

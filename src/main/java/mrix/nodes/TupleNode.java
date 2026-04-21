@@ -6,7 +6,7 @@ import mrix.interpreter.Value;
 import mrix.typechecker.DataType;
 
 public class TupleNode extends AbstractNode {
-    private List<Node> elements;
+    private final List<Node> elements;
     
     public TupleNode(List<Node> elements, int line) {
         super(line);

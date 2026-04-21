@@ -3,7 +3,7 @@ package mrix.interpreter;
 import java.util.List;
 
 public class TupleValue {
-    private List<Value> values;
+    private final List<Value> values;
 
     public TupleValue(List<Value> values) {
         this.values = values;

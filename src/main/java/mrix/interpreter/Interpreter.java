@@ -51,7 +51,7 @@ public class Interpreter implements InterpreterVisitor {
             return sb.toString();
         }
         if (v.getType() == TUPLE) {
-            return ((TupleValue) v.getValue()).toString();
+            return v.getValue().toString();
         }
         return String.valueOf(v.getValue());
     }
@@ -65,13 +65,13 @@ public class Interpreter implements InterpreterVisitor {
         if (variable.getExpressionList() != null && !variable.getExpressionList().isEmpty()) {
             if (value.getType() == TUPLE) {
                 TupleValue tuple = (TupleValue) value.getValue();
-                int idx = toIndex(variable.getExpressionList().get(0).accept(this), tuple.getValues().size(), variable.getLine());
+                int idx = toIndex(variable.getExpressionList().getFirst().accept(this), tuple.getValues().size(), variable.getLine());
                 return tuple.getValues().get(idx);
             }
 
             double[][] matrix = value.toMatrix();
             if (matrix.length == 1) {
-                int col = toIndex(variable.getExpressionList().get(0).accept(this), matrix[0].length, variable.getLine());
+                int col = toIndex(variable.getExpressionList().getFirst().accept(this), matrix[0].length, variable.getLine());
                 return new Value(matrix[0][col], FLOAT);
             }
             int row = toIndex(variable.getExpressionList().get(0).accept(this), matrix.length, variable.getLine());
@@ -293,7 +293,7 @@ public class Interpreter implements InterpreterVisitor {
             if (existing.getType() == MATRIX) {
                 double[][] matrix = existing.toMatrix();
                 if (matrix.length == 1) {
-                    int col = toIndex(variable.getExpressionList().get(0).accept(this), matrix[0].length, variable.getLine());
+                    int col = toIndex(variable.getExpressionList().getFirst().accept(this), matrix[0].length, variable.getLine());
                     matrix[0][col] = value.toDouble();
                 } else {
                     int row = toIndex(variable.getExpressionList().get(0).accept(this), matrix.length, variable.getLine());
@@ -329,11 +329,7 @@ public class Interpreter implements InterpreterVisitor {
         if (node.getVariable() instanceof VariableNode variable) {
             switch (node.getOp().getTokenType()) {
                 case ASSIGN:
-                    if (memory.get(variable.getId().getLexeme()) != null) {
-                        assignToVariable(variable, value, false);
-                    } else {
-                        assignToVariable(variable, value, true);
-                    }
+                    assignToVariable(variable, value, memory.get(variable.getId().getLexeme()) == null);
                     break;
                 case ADD_ASSIGN: {
                     Token op = new Token(ADD, "+", null, node.getOp().getLine());
@@ -443,7 +439,7 @@ public class Interpreter implements InterpreterVisitor {
     public Value visitMatrixNode(MatrixNode node) {
         List<List<Node>> rows = node.getRows();
         int rowCount = rows.size();
-        int colCount = rows.get(0).size();
+        int colCount = rows.getFirst().size();
         for (List<Node> row : rows) {
             if (row.size() != colCount) {
                 throw new MrixRuntimeException("All rows in a matrix must have the same length", node.getLine());
@@ -475,7 +471,7 @@ public class Interpreter implements InterpreterVisitor {
         Token fun = node.getFun();
         int rows, cols;
         if (expressionList.size() == 1) {
-            int n = expressionList.get(0).accept(this).toInt();
+            int n = expressionList.getFirst().accept(this).toInt();
             rows = n;
             cols = n;
         } else {
