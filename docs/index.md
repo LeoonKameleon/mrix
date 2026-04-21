@@ -294,21 +294,23 @@ The path can be relative or absolute. Its type must be **STRING**.
 |   `mean(x...)`   |         `x:` **INT**, **FLOAT**, **MATRIX**          | Returns the arithmetic mean of all given numerical arguments. |       **INT** or **FLOAT**       |
 
 ### Utilities
-|     Function     |                                    Accepted types                                    |                                           Description                                           | Return type |
-|:----------------:|:------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|:-----------:|
-|    `size(A)`     |                                   `A:` **MATRIX**                                    |                    Returns the dimensions of `A` as a tuple `(rows, cols)`.                     |  **TUPLE**  |
-|    `rows(A)`     |                                   `A:` **MATRIX**                                    |                               Returns the number of rows in `A`.                                |   **INT**   |
-|    `cols(A)`     |                                   `A:` **MATRIX**                                    |                               Returns the number of cols in `A`.                                |   **INT**   |
-|     `len(x)`     |                        `x:` **STRING**, **MATRIX**, **TUPLE**                        | Returns the number of characters in a string or the total number of elements in a matrix/tuple. |   **INT**   |
-| `contains(x, y)` | `x:` **STRING**, **MATRIX**, **TUPLE** `y:` **STRING**, **INT**, **FLOAT**, **BOOL** |                       Returns true if `x` contains `y`, otherwise false.                        |  **BOOL**   |
-|    `at(x, i)`    |                             `x:` **STRING** `i:` **INT**                             |                               Returns the character at index `i`.                               | **STRING**  |
-|    `type(x)`     |                                      `x:` *ANY*                                      |                                  Returns the type name of `x`.                                  | **STRING**  |
-|     `int(x)`     |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                              Returns the value of `x` as **INT**.                               |   **INT**   |
-|    `float(x)`    |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                             Returns the value of `x` as **FLOAT**.                              |  **FLOAT**  |
-|     `str(x)`     |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                             Returns the value of `x` as **STRING**.                             | **STRING**  |
-|    `bool(x)`     |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                              Returns the value of `x` as **BOOL**.                              |  **BOOL**   |
-|    `tuple(x)`    |                                      `x:` *ANY*                                      |                             Returns the value of `x` as **TUPLE**.                              |  **TUPLE**  |
-|   `matrix(x)`    |                                    `x:` **TUPLE**                                    |                             Returns numeric tuple `x` as **MATRIX**                             | **MATRIX**  |
+|       Function        |                                    Accepted types                                    |                                           Description                                           |       Return type       |
+|:---------------------:|:------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|:-----------------------:|
+|       `size(A)`       |                                   `A:` **MATRIX**                                    |                    Returns the dimensions of `A` as a tuple `(rows, cols)`.                     |        **TUPLE**        |
+|       `rows(A)`       |                                   `A:` **MATRIX**                                    |                               Returns the number of rows in `A`.                                |         **INT**         |
+|       `cols(A)`       |                                   `A:` **MATRIX**                                    |                               Returns the number of cols in `A`.                                |         **INT**         |
+|       `len(x)`        |                        `x:` **STRING**, **MATRIX**, **TUPLE**                        | Returns the number of characters in a string or the total number of elements in a matrix/tuple. |         **INT**         |
+|   `contains(x, y)`    | `x:` **STRING**, **MATRIX**, **TUPLE** `y:` **STRING**, **INT**, **FLOAT**, **BOOL** |                       Returns true if `x` contains `y`, otherwise false.                        |        **BOOL**         |
+|      `at(x, i)`       |                             `x:` **STRING** `i:` **INT**                             |                               Returns the character at index `i`.                               |       **STRING**        |
+|       `type(x)`       |                                      `x:` *ANY*                                      |                                  Returns the type name of `x`.                                  |       **STRING**        |
+|       `int(x)`        |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                              Returns the value of `x` as **INT**.                               |         **INT**         |
+|      `float(x)`       |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                             Returns the value of `x` as **FLOAT**.                              |        **FLOAT**        |
+|       `str(x)`        |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                             Returns the value of `x` as **STRING**.                             |       **STRING**        |
+|       `bool(x)`       |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                              Returns the value of `x` as **BOOL**.                              |        **BOOL**         |
+|      `tuple(x)`       |                                      `x:` *ANY*                                      |                             Returns the value of `x` as **TUPLE**.                              |        **TUPLE**        |
+|      `matrix(x)`      |                                    `x:` **TUPLE**                                    |                             Returns numeric tuple `x` as **MATRIX**                             |       **MATRIX**        |
+| `range(s, e, [step])` |                      `s:` **INT** `e:` **INT** `step:` **INT**                       |                    Returns a sequence from `s` to `e`. `step` defaults to 1.                    |        **TUPLE**        |
+|     `reverse(x)`      |                              `x:` **STRING**, **TUPLE**                              |                                  Returns `x` in reverse order.                                  | **STRING** or **TUPLE** |
 
 ### File I/O
 | Function | Accepted types | Description | Return type |
