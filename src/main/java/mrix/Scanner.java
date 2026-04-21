@@ -150,26 +150,31 @@ public class Scanner {
             Mrix.error(line, "Unexpected end of string");
         }
         position++;
-        addToken(STRING, source.substring(start+1, position-1));
+        String raw = source.substring(start+1, position-1);
+        addToken(STRING, raw.translateEscapes());
     }
 
     private void addToken(TokenType type) {
         addToken(type, null);
     }
+
     private void addToken(TokenType type, Object literal) {
         String text = source.substring(start, position);
         tokens.add(new Token(type, text, literal, line));
     }
+
     private boolean check(char c) {
         if (position >= source.length()) return false;
         if (c != source.charAt(position)) return false;
         position++;
         return true;
     }
+
     private char peek() {
         if (position >= source.length()) return '\0';
         return source.charAt(position);
     }
+
     private boolean isDigit(char c) {
         return c >= '0' && c <= '9';
     }
