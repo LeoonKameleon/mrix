@@ -32,6 +32,11 @@ public class TupleValue {
     }
 
     @Override
+    public int hashCode() {
+        return values.hashCode();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof TupleValue other)) return false;
         return this.values.equals(other.values);

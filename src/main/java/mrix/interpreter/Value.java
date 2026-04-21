@@ -3,6 +3,8 @@ package mrix.interpreter;
 import mrix.typechecker.DataType;
 import static mrix.typechecker.DataType.*;
 
+import java.util.Objects;
+
 public class Value {
     private Object value;
     private final DataType type;
@@ -75,5 +77,23 @@ public class Value {
 
     public TupleValue toTuple() {
         return (TupleValue) value;
+    }
+
+    @Override
+    public int hashCode() {
+        if (value instanceof double[][] m) {
+            return java.util.Arrays.deepHashCode(m);
+        }
+        return Objects.hash(value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Value other)) return false;
+        if (this.value instanceof double[][] m1 && other.value instanceof double[][] m2) {
+            return java.util.Arrays.deepEquals(m1, m2);
+        }
+        return Objects.equals(this.value, other.value);
     }
 }

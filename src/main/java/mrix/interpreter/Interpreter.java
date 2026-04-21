@@ -89,14 +89,14 @@ public class Interpreter implements InterpreterVisitor {
                         left.toTuple().equals(right.toTuple())
                     );
                 }
-                return new Value(left.getValue().equals(right.getValue()), BOOL);
+                return new Value(left.equals(right), BOOL);
             case NOT_EQ:
                 if (left.getType() == TUPLE && right.getType() == TUPLE) {
                     return Value.of(
                         !left.toTuple().equals(right.toTuple())
                     );
                 }
-                return new Value(!left.getValue().equals(right.getValue()), BOOL);
+                return new Value(!left.equals(right), BOOL);
             case GREATER:
                 return new Value(left.toDouble() > right.toDouble(), BOOL);
             case GREATER_EQ:
