@@ -498,6 +498,38 @@ public class StandardLibrary {
             }
             return new Value(data, MATRIX);
         });
+        functions.put("range", args -> {
+            int size = args.size();
+            if (size < 2 || size > 3) throw new StandardLibraryException("range() expects 2 or 3 arguments");
+
+            long start = args.get(0).toInt();
+            long end = args.get(1).toInt();
+            long step = (size == 3) ? args.get(2).toInt() : 1;
+
+            if (step == 0) throw new StandardLibraryException("range() step cannot be zero");
+
+            List<Value> range = new ArrayList<>();
+
+            if (step > 0) {
+                for (long i = start; i <= end; i += step) range.add(Value.of(i));
+            } else {
+                for (long i = start; i >= end; i += step) range.add(Value.of(i));
+            }
+
+            return Value.of(new TupleValue(range));
+        });
+        functions.put("reverse", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("reverse() expects 1 argument, but got " + args.size());
+            Value arg = args.getFirst();
+            if (arg.getType() == STRING) {
+                return new Value(new StringBuilder(arg.toString()).reverse().toString(), STRING);
+            }
+            if (arg.getType() == TUPLE) {
+                List<Value> values = arg.toTuple().getValues();
+                return Value.of(new TupleValue(values.reversed()));
+            }
+            throw new StandardLibraryException("reverse() does not support " + arg.getType() + " type");
+        });
         functions.put("f_read", args -> {
             if (args.size() != 1) throw new StandardLibraryException("f_read() expects 1 argument, but got " + args.size());
             if (args.getFirst().getType() != STRING) throw new StandardLibraryException("f_read() expects STRING as first argument");

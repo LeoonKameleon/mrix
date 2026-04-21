@@ -90,3 +90,6 @@ print len(t1);
 
 t = (1, 2, 3, 4, 5);
 print matrix(t);
+
+print range(10, 1, -3);
+print reverse(range(1, 10));
