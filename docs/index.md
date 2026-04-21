@@ -8,20 +8,24 @@ Mrix is a dynamically-typed, interpreted language designed for matrix manipulati
 ## 2. Data Types
 Mrix supports following data types:
 + **INT** - 64-bit signed integer.
-  + example: `int_value = 5;`
+  + Example: `int_value = 5;`
 
 + **FLOAT** - 64-bit floating point.
-  + example: `float_value = 6.7;`
+  + Example: `float_value = 6.7;`
 
 + **BOOL** - Logical values `true` or `false`.
-  + example: `boolean_value = true;`
+  + Example: `boolean_value = true;`
   + **Note**: For numerical and matrix operations, booleans are automatically evaluated as **FLOAT** values: `true == 1.0` and `false == 0.0`.
 
 + **STRING** - Sequence of characters.
-  + example: `string_sequence = "mrix";`
+  + Example: `string_sequence = "mrix";`
+  + Supports standard escape sequences (`\n`, `\t`, `\"`, etc.).
 
 + **MATRIX** - A 2D (or 1D) array of numerical values (**INT**/**FLOAT**).
-  + example: ```matrix = [[1, 2], [3.3, 4]];```
+  + Example: ```matrix = [[1, 2], [3.3, 4]];```
+
++ **TUPLE** - An immutable, ordered collection of values of any type.
+  + Example: `my_tuple = (1, "text", [1, 2]);`
 
 + *NULL* - Represents the absence of a value, it is used to indicate that a function or operation does not return a result (void). It is not possible to declare this type explicitly.
 
@@ -103,10 +107,56 @@ Mrix supports standard algebraic operations as well as element-wise operations b
 ### String operations
 
 + `string + string` - String concatenation.
-+ `string - string` - Remove the first occurence of the second string.
++ `string - string` - Remove the first occurrence of the second string.
 + `string * int` - Repeat the string N times.
 
-## 6. Logic and Comparison
+## 6. Tuples
+Tuple structures allow for grouping multiple values into a single data type.
+
+### Initialization
+Tuples are defined using parentheses. They can contain any data types, including other tuples and matrices:
+```mrix
+empty = ();
+single = (5,);
+t = (1, 2.5, "mrix", [[1, 0], [0, 1]]);
+nested = (1, (2, 3), 4);
+```
+
+### Accessing elements
+Elements of a tuple can be accessed using square brackets. Unlike matrices, tuple elements are read-only:
+```mrix
+t = (10, "hello", [1, 2]);
+val = t[0]; // 10
+msg = t[1]; // "hello"
+
+t[0] = 20; // results in an error (immutability)
+```
+
+### Unpacking
+Mrix supports tuple unpacking allowing assignment of multiple values to variables in a single statement:
+```mrix
+funct get_coords() {
+    return (10, 20);
+}
+
+(x, y) = get_coords();
+print x; // 10
+print y; // 20
+```
+
+### Comparison
+Tuples support equality operators. Two tuples are considered equal if they have the same length and all their elements at corresponding indices are equal.
+
+```mrix
+t1 = (1, [1, 2], (3, 4));
+t2 = (1, [1, 2], (3, 4));
+print t1 == t2; // true
+
+t3 = (1, [1, 2], (9, 9));
+print t1 == t3; // false
+```
+
+## 7. Logic and Comparison
 These operators evaluate expressions and return a **BOOL** value:
 
 ### Comparison operators
@@ -124,14 +174,20 @@ Used to compare boolean values (**BOOL**).
 + `or` - Returns true if at least one of operands evaluates to true.
 + `not` (or `!`) - A unary operator that inverts the boolean value.
 
+### Equality
+Mrix uses **deep equality** for comparison of complex data structures.
++ **Matrices** are equal if they have the same dimensions and all elements match.
++ **Tuples** are equal if they have the same length and all corresponding elements are equal (this is checked recursively for nested structures).
++ **Mixed Types**: Comparison between different data types (e.g., `5 == "5"` or `[1, 2] == (1, 2)`) always returns `false`.
 
-## 7. Matrix generators
+
+## 8. Matrix generators
 Built-in instructions for quick matrix creation:
 + `eye(n)` or `eye(r, c)` - Identity matrix.
 + `zeros(n)` or `zeros(r, c)` - Matrix filled with `0.0`.
 + `ones(n)` or `ones(r, c)` - Matrix filled with `1.0`.
 
-## 8. Control flow
+## 9. Control flow
 ### Conditional statements
 ```mrix
 if (condition) {
@@ -149,13 +205,24 @@ while (x < 15) {
 }
 
 for i = 0:14 {
-    if (i == 6) continue;
-    print i;
-    if (i == 10) break;
+    print i; // prints numbers from 0 to 14
+}
+```
+**Note**: In `for` loops the range is **inclusive**.
+### Loop Control Statements
+Mrix provides two keywords to control the execution flow within loops:
++ `break` - Immediately terminates the innermost loop.
++ `continue` - Skips the rest of the current iteration and jumps to the next one.
+
+```mrix
+for i = 1:10 {
+    if (i == 3) continue; // skip number 3
+    if (i == 7) break; // stop the loop when i reaches 7
+    print i; // prints: 1, 2, 4, 5, 6
 }
 ```
 
-## 9. Functions
+## 10. Functions
 Functions in mrix support recursion and returning values. They are defined with `funct` keyword:
 ```mrix
 funct add(a, b) {
@@ -165,7 +232,7 @@ funct add(a, b) {
 a = add(1, 4);
 ```
 
-## 10. Imports
+## 11. Imports
 Mrix supports importing code from other `.mrix` files using `import` keyword:
 <table>
 <tr>
@@ -227,19 +294,21 @@ The path can be relative or absolute. Its type must be **STRING**.
 |   `mean(x...)`   |         `x:` **INT**, **FLOAT**, **MATRIX**          | Returns the arithmetic mean of all given numerical arguments. |       **INT** or **FLOAT**       |
 
 ### Utilities
-|     Function     |                              Accepted types                               |                                        Description                                        | Return type |
-|:----------------:|:-------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------:|:-----------:|
-|    `size(A)`     |                              `A:` **MATRIX**                              |                         Returns the size (`[rows, cols]`) of `A`.                         | **MATRIX**  |
-|    `rows(A)`     |                              `A:` **MATRIX**                              |                            Returns the number of rows in `A`.                             |   **INT**   |
-|    `cols(A)`     |                              `A:` **MATRIX**                              |                            Returns the number of cols in `A`.                             |   **INT**   |
-|     `len(x)`     |                        `x:` **STRING**, **MATRIX**                        | Returns the number of characters in a string or the total number of elements in a matrix. |   **INT**   |
-| `contains(x, y)` | `x:` **STRING**, **MATRIX** `y:` **STRING**, **INT**, **FLOAT**, **BOOL** |                    Returns true if `x` contains `y`, otherwise false.                     |  **BOOL**   |
-|    `at(x, i)`    |                       `x:` **STRING** `y:` **INT**                        |                            Returns the character at index `i`.                            | **STRING**  |
-|    `type(x)`     |                                `x:` *ANY*                                 |                               Returns the type name of `x`.                               | **STRING**  |
-|     `int(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                           Returns the value of `x` as **INT**.                            |   **INT**   |
-|    `float(x)`    |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                          Returns the value of `x` as **FLOAT**.                           |  **FLOAT**  |
-|     `str(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                          Returns the value of `x` as **STRING**.                          | **STRING**  |
-|    `bool(x)`     |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**               |                           Returns the value of `x` as **BOOL**.                           |  **BOOL**   |
+|     Function     |                                    Accepted types                                    |                                           Description                                           | Return type |
+|:----------------:|:------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|:-----------:|
+|    `size(A)`     |                                   `A:` **MATRIX**                                    |                    Returns the dimensions of `A` as a tuple `(rows, cols)`.                     |  **TUPLE**  |
+|    `rows(A)`     |                                   `A:` **MATRIX**                                    |                               Returns the number of rows in `A`.                                |   **INT**   |
+|    `cols(A)`     |                                   `A:` **MATRIX**                                    |                               Returns the number of cols in `A`.                                |   **INT**   |
+|     `len(x)`     |                        `x:` **STRING**, **MATRIX**, **TUPLE**                        | Returns the number of characters in a string or the total number of elements in a matrix/tuple. |   **INT**   |
+| `contains(x, y)` | `x:` **STRING**, **MATRIX**, **TUPLE** `y:` **STRING**, **INT**, **FLOAT**, **BOOL** |                       Returns true if `x` contains `y`, otherwise false.                        |  **BOOL**   |
+|    `at(x, i)`    |                             `x:` **STRING** `i:` **INT**                             |                               Returns the character at index `i`.                               | **STRING**  |
+|    `type(x)`     |                                      `x:` *ANY*                                      |                                  Returns the type name of `x`.                                  | **STRING**  |
+|     `int(x)`     |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                              Returns the value of `x` as **INT**.                               |   **INT**   |
+|    `float(x)`    |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                             Returns the value of `x` as **FLOAT**.                              |  **FLOAT**  |
+|     `str(x)`     |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                             Returns the value of `x` as **STRING**.                             | **STRING**  |
+|    `bool(x)`     |                    `x:` **INT**, **FLOAT**, **STRING**, **BOOL**                     |                              Returns the value of `x` as **BOOL**.                              |  **BOOL**   |
+|    `tuple(x)`    |                                      `x:` *ANY*                                      |                             Returns the value of `x` as **TUPLE**.                              |  **TUPLE**  |
+|   `matrix(x)`    |                                    `x:` **TUPLE**                                    |                             Returns numeric tuple `x` as **MATRIX**                             | **MATRIX**  |
 
 ### File I/O
 | Function | Accepted types | Description | Return type |

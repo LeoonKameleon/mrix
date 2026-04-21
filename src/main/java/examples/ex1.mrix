@@ -86,3 +86,7 @@ t3 = (1, [1, 2], (9, 9));
 print t1 == t3; // false
 
 print [1, 2] == [1, 2];
+print len(t1);
+
+t = (1, 2, 3, 4, 5);
+print matrix(t);
