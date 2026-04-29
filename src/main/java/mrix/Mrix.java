@@ -7,9 +7,11 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import mrix.interpreter.Interpreter;
-import mrix.nodes.Node;
-import mrix.tokens.Token;
-import mrix.typechecker.TypeChecker;
+import mrix.ast.Node;
+import mrix.parser.Parser;
+import mrix.scanner.token.Token;
+import mrix.scanner.Scanner;
+import mrix.typing.TypeChecker;
 
 public class Mrix {
     private static final boolean hadError = false;
@@ -60,7 +62,7 @@ public class Mrix {
         ast.accept(interpreter);
         interpreter.finish();
     }
-    static void error(int line, String message) {
+    public static void error(int line, String message) {
         System.out.println("Line " + line + " error: " + message);
     }
 }

@@ -1,5 +1,7 @@
 package mrix.interpreter;
 
+import mrix.interpreter.value.Value;
+
 import java.util.HashMap;
 
 public class Memory {

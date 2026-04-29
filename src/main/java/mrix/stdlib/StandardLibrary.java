@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
-import mrix.exceptions.StandardLibraryException;
-import mrix.interpreter.TupleValue;
-import mrix.interpreter.Value;
-import static mrix.typechecker.DataType.*;
-import mrix.typechecker.DataType;
+import mrix.exception.StandardLibraryException;
+import mrix.interpreter.value.TupleValue;
+import mrix.interpreter.value.Value;
+import static mrix.typing.type.DataType.*;
+import mrix.typing.type.DataType;
 
 public class StandardLibrary {
     private final HashMap<String, Function<List<Value>, Value>> functions = new HashMap<>();

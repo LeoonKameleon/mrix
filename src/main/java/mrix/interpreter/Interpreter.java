@@ -1,19 +1,21 @@
 package mrix.interpreter;
 
-import mrix.Parser;
-import mrix.Scanner;
-import mrix.exceptions.BreakException;
-import mrix.exceptions.ContinueException;
-import mrix.exceptions.MrixRuntimeException;
-import mrix.exceptions.ReturnException;
-import mrix.exceptions.StandardLibraryException;
-import mrix.nodes.*;
+import mrix.parser.Parser;
+import mrix.scanner.Scanner;
+import mrix.interpreter.flow.BreakException;
+import mrix.interpreter.flow.ContinueException;
+import mrix.exception.MrixRuntimeException;
+import mrix.interpreter.flow.ReturnException;
+import mrix.exception.StandardLibraryException;
+import mrix.interpreter.value.TupleValue;
+import mrix.interpreter.value.Value;
+import mrix.ast.*;
 import mrix.stdlib.StandardLibrary;
-import mrix.tokens.Token;
-import mrix.typechecker.DataType;
+import mrix.scanner.token.Token;
+import mrix.typing.type.DataType;
 
-import static mrix.tokens.TokenType.*;
-import static mrix.typechecker.DataType.*;
+import static mrix.scanner.token.TokenType.*;
+import static mrix.typing.type.DataType.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
