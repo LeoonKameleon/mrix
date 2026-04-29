@@ -11,16 +11,18 @@ import mrix.tokens.Token;
 import mrix.tokens.TokenType;
 
 public class Scanner {
-    private final List<Token> tokens = new ArrayList<Token>();
+    private final List<Token> tokens = new ArrayList<>();
     private final String source;
     private int start = 0;
     private int position = 0;
     private int line = 1;
-    private static final Map<String, TokenType> keywords = new HashMap<String, TokenType>();
+    private static final Map<String, TokenType> keywords = new HashMap<>();
     static {
         keywords.put("if", IF);
         keywords.put("else", ELSE);
         keywords.put("for", FOR);
+        keywords.put("iter", ITER);
+        keywords.put("in", IN);
         keywords.put("while", WHILE);
         keywords.put("break", BREAK);
         keywords.put("return", RETURN);
@@ -34,6 +36,7 @@ public class Scanner {
         keywords.put("funct", FUNCTION);
         keywords.put("true", TRUE);
         keywords.put("false", FALSE);
+        keywords.put("none", NONE);
         keywords.put("import", IMPORT);
     }
 

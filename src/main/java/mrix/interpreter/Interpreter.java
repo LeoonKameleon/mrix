@@ -257,6 +257,36 @@ public class Interpreter implements InterpreterVisitor {
         return (int) idx;
     }
 
+    private List<Value> toIterable(Value v, int line) {
+        switch (v.getType()) {
+            case STRING:
+                List<Value> chars = new ArrayList<>();
+                for (char c : v.toString().toCharArray()) {
+                    chars.add(new Value(String.valueOf(c), DataType.STRING));
+                }
+                return chars;
+
+            case TUPLE:
+                return v.toTuple().getValues();
+
+            case MATRIX:
+                double[][] m = v.toMatrix();
+                List<Value> flat = new ArrayList<>();
+                for (double[] row : m) {
+                    for (double x : row) {
+                        flat.add(new Value(x, DataType.FLOAT));
+                    }
+                }
+                return flat;
+
+            case ANY:
+                throw new MrixRuntimeException("Cannot iterate over ANY type", line);
+
+            default:
+                throw new MrixRuntimeException("Type " + v.getType() + " is not iterable", line);
+        }
+    }
+
     public Value visitPrimaryNode(PrimaryNode node) {
         if (node.getCachedValue() != null) return node.getCachedValue();
         Token token = node.getValue();
@@ -267,7 +297,8 @@ public class Interpreter implements InterpreterVisitor {
             case STRING: result = new Value(token.getLiteral(), DataType.STRING); break;
             case TRUE: result = Value.TRUE; break;
             case FALSE: result = Value.FALSE; break;
-            default: return Value.NULL; 
+            case NONE: result = Value.NONE; break;
+            default: return Value.NONE;
         }
         node.setCachedValue(result);
         return result;
@@ -534,8 +565,42 @@ public class Interpreter implements InterpreterVisitor {
         long rangeEnd = node.getRangeEnd().accept(this).toLong();
         String id = node.getId().getLexeme();
         memory = memory.push();
-        for (long i=rangeStart; i<=rangeEnd; i++) {
-            memory.put(id, Value.of(i));
+        if (rangeStart <= rangeEnd) {
+            for (long i=rangeStart; i<=rangeEnd; i++) {
+                memory.put(id, Value.of(i));
+                try {
+                    node.getInstruction().accept(this);
+                } catch (BreakException e) {
+                    break;
+                } catch (ContinueException _) {
+                }
+            }
+        } else {
+            for (long i=rangeStart; i>=rangeEnd; i--) {
+                memory.put(id, Value.of(i));
+                try {
+                    node.getInstruction().accept(this);
+                } catch (BreakException e) {
+                    break;
+                } catch (ContinueException _) {
+                }
+            }
+        }
+        memory = memory.pop();
+        return null;
+    }
+
+    public Value visitIterNode(IterNode node) {
+        String id = node.getId().getLexeme();
+
+        Value iterableValue = node.getIterable().accept(this);
+        List<Value> elements = toIterable(iterableValue, node.getLine());
+
+        memory = memory.push();
+
+        for (Value v : elements) {
+            memory.put(id, v);
+
             try {
                 node.getInstruction().accept(this);
             } catch (BreakException e) {
@@ -543,6 +608,7 @@ public class Interpreter implements InterpreterVisitor {
             } catch (ContinueException _) {
             }
         }
+
         memory = memory.pop();
         return null;
     }
@@ -581,10 +647,9 @@ public class Interpreter implements InterpreterVisitor {
 
     public Value visitReturnNode(ReturnNode node) {
         Node expression = node.getExpression();
-        if (expression != null) {
-            throw new ReturnException(expression.accept(this));
-        }
-        throw new ReturnException(null);
+        if (expression == null) throw new ReturnException(Value.NONE);
+        Value v = expression.accept(this);
+        throw new ReturnException(v == null ? Value.NONE : v);
     }
 
     public Value visitBlockNode(BlockNode node) {
@@ -645,11 +710,11 @@ public class Interpreter implements InterpreterVisitor {
         for (int i = 0; i < params.size(); i++)
             memory.put(params.get(i).getLexeme(), argValues.get(i));
         
-        Value result = null;
+        Value result = Value.NONE;
         try {
             function.getInstruction().accept(this);
         } catch (ReturnException e) {
-            result = e.value;
+            result = (e.value == null) ? Value.NONE : e.value;
         } finally {
             memory = initial;
         }

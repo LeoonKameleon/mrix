@@ -1,5 +1,5 @@
 package mrix.typechecker;
 
 public enum DataType {
-    INT, FLOAT, STRING, MATRIX, BOOL, FUNCTION, TUPLE, ANY, UNKNOWN
+    INT, FLOAT, STRING, MATRIX, BOOL, NONE, FUNCTION, TUPLE, ANY, UNKNOWN
 }

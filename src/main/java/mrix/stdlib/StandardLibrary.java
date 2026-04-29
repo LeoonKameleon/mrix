@@ -572,7 +572,7 @@ public class StandardLibrary {
             String content = args.get(1).toString();
             try {
                 Files.writeString(resolvePath(path), content, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-                return Value.NULL;
+                return Value.NONE;
             } catch (IOException e) {
                 throw new StandardLibraryException("f_append() cannot append to file: " + e.getMessage());
             }
@@ -585,7 +585,7 @@ public class StandardLibrary {
             String content = args.get(1).toString();
             try {
                 Files.writeString(resolvePath(path), content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-                return Value.NULL;
+                return Value.NONE;
             } catch (IOException e) {
                 throw new StandardLibraryException("f_write() cannot write to file: " + e.getMessage());
             }

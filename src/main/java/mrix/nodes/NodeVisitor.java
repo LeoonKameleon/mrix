@@ -13,6 +13,7 @@ public interface NodeVisitor {
     DataType visitExpressionNode(ExpressionNode node);
     DataType visitFlatMatrixNode(FlatMatrixNode node);
     DataType visitForNode(ForNode node);
+    DataType visitIterNode(IterNode node);
     DataType visitFunctionCallNode(FunctionCallNode node);
     DataType visitFunctionNode(FunctionNode node);
     DataType visitIfNode(IfNode node);

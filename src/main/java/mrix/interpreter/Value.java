@@ -11,7 +11,7 @@ public class Value {
 
     public static final Value TRUE = new Value(Boolean.TRUE, DataType.BOOL);
     public static final Value FALSE = new Value(Boolean.FALSE, DataType.BOOL);
-    public static final Value NULL = new Value(null, DataType.UNKNOWN);
+    public static final Value NONE = new Value("none", DataType.NONE);
 
     private static final int CACHE_LOW = -4096;
     private static final int CACHE_HIGH = 4095;

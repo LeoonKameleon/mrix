@@ -13,6 +13,7 @@ public interface InterpreterVisitor {
     Value visitExpressionNode(ExpressionNode node);
     Value visitFlatMatrixNode(FlatMatrixNode node);
     Value visitForNode(ForNode node);
+    Value visitIterNode(IterNode node);
     Value visitFunctionCallNode(FunctionCallNode node);
     Value visitFunctionNode(FunctionNode node);
     Value visitIfNode(IfNode node);

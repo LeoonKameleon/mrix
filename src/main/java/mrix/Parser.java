@@ -30,7 +30,7 @@ public class Parser {
     }
 
     private Node parseInstructions() {
-        List<Node> instructions = new ArrayList<Node>();
+        List<Node> instructions = new ArrayList<>();
         while (!check(EOF) && !check(RIGHT_BRACE)) {
             Node instruction = parseInstruction();
             instructions.add(instruction);
@@ -42,6 +42,7 @@ public class Parser {
         if (check(IF)) return parseIfStatement();
         if (check(WHILE)) return parseWhileStatement();
         if (check(FOR)) return parseForStatement();
+        if (check(ITER)) return parseIterStatement();
         if (check(RETURN)) {
             Node returnNode = parseReturnStatement();
             expect(SEMICOLON);
@@ -114,9 +115,22 @@ public class Parser {
         return new ForNode(id, expression1, expression2, instruction, t.getLine());
     }
 
+    private Node parseIterStatement() {
+        Token t = expect(ITER);
+        Token iterator = expect(ID);
+        expect(IN);
+        Node iterable = parseExpression();
+        Node instruction = parseInstruction();
+        return new IterNode(iterator, iterable, instruction, t.getLine());
+    }
+
+    private PrimaryNode none(int line) {
+        return new PrimaryNode(new Token(NONE, "none", null, line), line);
+    }
+
     private Node parseReturnStatement() {
         Token t = consume();
-        if (check(SEMICOLON)) return new ReturnNode(null, t.getLine());
+        if (check(SEMICOLON)) return new ReturnNode(none(t.getLine()), t.getLine());
         Node expression = parseExpression();
         return new ReturnNode(expression, t.getLine());
     }
@@ -261,7 +275,7 @@ public class Parser {
     }
 
     private Node parsePrimary() {
-        if (check(INT_NUM) || check(FLOAT_NUM) || check(STRING) || check(TRUE) || check(FALSE)) {
+        if (check(INT_NUM) || check(FLOAT_NUM) || check(STRING) || check(TRUE) || check(FALSE) || check(NONE)) {
             Token value = consume();
             return new PrimaryNode(value, value.getLine());
         }
@@ -303,7 +317,7 @@ public class Parser {
     }
 
     private List<Node> parseExpressionList() {
-        List<Node> expressions = new ArrayList<Node>();
+        List<Node> expressions = new ArrayList<>();
         expressions.add(parseExpression());
         while (check(COMMA)) {
             consume();
@@ -346,7 +360,7 @@ public class Parser {
     }
 
     private List<Token> parseParameterList() {
-        List<Token> parameters = new ArrayList<Token>();
+        List<Token> parameters = new ArrayList<>();
         if (check(ID)) {
             parameters.add(consume());
         }

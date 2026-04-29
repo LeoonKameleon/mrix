@@ -9,6 +9,7 @@ import mrix.tokens.TokenType;
 
 import static mrix.tokens.TokenType.*;
 import static mrix.typechecker.DataType.*;
+import static mrix.typechecker.DataType.NONE;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class TypeChecker implements NodeVisitor {
     private SymbolTable table = new SymbolTable(null);
-    private final List<String> errors = new ArrayList<String>();
+    private final List<String> errors = new ArrayList<>();
     private final StandardLibrary stdlib;
     private int loopDepth;
 
@@ -25,14 +26,14 @@ public class TypeChecker implements NodeVisitor {
     }
 
     public DataType visitPrimaryNode(PrimaryNode node) {
-        switch(node.getValue().getTokenType()) {
-            case INT_NUM: return INT;
-            case FLOAT_NUM: return FLOAT;
-            case TokenType.STRING: return DataType.STRING;
-            case TRUE:
-            case FALSE: return BOOL;
-            default: return UNKNOWN;
-        }
+        return switch (node.getValue().getTokenType()) {
+            case INT_NUM -> INT;
+            case FLOAT_NUM -> FLOAT;
+            case TokenType.STRING -> DataType.STRING;
+            case TRUE, FALSE -> BOOL;
+            case NONE -> NONE;
+            default -> UNKNOWN;
+        };
     }
 
     public DataType visitVariableNode(VariableNode node) {
@@ -357,6 +358,24 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    public DataType visitIterNode(IterNode node) {
+        DataType iterableType = node.getIterable().accept(this);
+        if (iterableType == TUPLE || iterableType == DataType.STRING
+                || iterableType == MATRIX || iterableType == ANY) {
+            Token id = node.getId();
+            table = table.pushScope();
+            table.put(id.getLexeme(), new VariableSymbol(id.getLexeme(), getElementType(iterableType)));
+            loopDepth++;
+            node.getInstruction().accept(this);
+            loopDepth--;
+            table = table.popScope();
+        } else {
+            errors.add("Line " + node.getLine()
+                    + ": Expression is not iterable: " + iterableType);
+        }
+        return null;
+    }
+
     public DataType visitBreakNode(BreakNode node) {
         if (loopDepth <= 0) {
             errors.add("Line " + node.getLine() + ": Break statement outside of loop");
@@ -381,10 +400,8 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitReturnNode(ReturnNode node) {
         Node expression = node.getExpression();
-        if (expression != null) {
-            expression.accept(this);
-        }
-        return null;
+        if (expression == null) return NONE;
+        return expression.accept(this);
     }
 
     public DataType visitBlockNode(BlockNode node) {
@@ -462,6 +479,16 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitTuplePatternNode(TuplePatternNode node) {
         return UNKNOWN; 
+    }
+
+    private DataType getElementType(DataType iterableType) {
+        return switch (iterableType) {
+            case MATRIX -> FLOAT;
+            case STRING -> DataType.STRING;
+            case TUPLE -> ANY;
+            case ANY -> ANY;
+            default -> UNKNOWN;
+        };
     }
 
     public List<String> getErrors() {
