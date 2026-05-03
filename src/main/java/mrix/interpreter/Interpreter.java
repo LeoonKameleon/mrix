@@ -77,8 +77,15 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(matrix[0][col], FLOAT);
             }
             int row = toIndex(variable.getExpressionList().get(0).accept(this), matrix.length, variable.getLine());
-            int col = toIndex(variable.getExpressionList().get(1).accept(this), matrix[0].length, variable.getLine());
-            return new Value(matrix[row][col], FLOAT);
+            if (variable.getExpressionList().size() == 2) {
+                int col = toIndex(variable.getExpressionList().get(1).accept(this), matrix[0].length, variable.getLine());
+                return new Value(matrix[row][col], FLOAT);
+            }
+            double[][] res = new double[1][matrix[row].length];
+            for (int i = 0; i < matrix[row].length; i++) {
+                res[0][i] = matrix[row][i];
+            }
+            return new Value(res, MATRIX);
         }
         return value;
     }

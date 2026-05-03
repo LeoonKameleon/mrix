@@ -98,3 +98,6 @@ iter i in t { print i;}
 
 funct f(x) { }
 print f(1);
+
+A = eye(3);
+print A[0];
