@@ -26,6 +26,7 @@ public class Scanner {
         keywords.put("in", IN);
         keywords.put("while", WHILE);
         keywords.put("break", BREAK);
+        keywords.put("continue", CONTINUE);
         keywords.put("return", RETURN);
         keywords.put("and", AND);
         keywords.put("or", OR);
