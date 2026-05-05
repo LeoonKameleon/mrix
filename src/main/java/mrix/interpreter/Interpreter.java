@@ -87,9 +87,7 @@ public class Interpreter implements InterpreterVisitor {
                 return new Value(matrix[row][col], FLOAT);
             }
             double[][] res = new double[1][matrix[row].length];
-            for (int i = 0; i < matrix[row].length; i++) {
-                res[0][i] = matrix[row][i];
-            }
+            System.arraycopy(matrix[row], 0, res[0], 0, matrix[row].length);
             return new Value(res, MATRIX);
         }
         return value;
