@@ -72,6 +72,7 @@ public class Value {
     }
 
     public boolean toBoolean() {
+        if (type == DataType.NONE) return false;
         return (boolean) value;
     }
 

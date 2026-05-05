@@ -238,7 +238,7 @@ public class TypeChecker implements NodeVisitor {
         Token op = node.getOp();
         DataType type = node.getUnaryExpression().accept(this);
         if (op.getTokenType() == NOT) {
-            if (type == BOOL) return BOOL;
+            if (type == BOOL || type == NONE) return BOOL;
             errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + NOT + "': " + type);
             return UNKNOWN;
         }

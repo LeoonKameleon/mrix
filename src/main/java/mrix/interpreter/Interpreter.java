@@ -27,7 +27,7 @@ import java.util.List;
 
 public class Interpreter implements InterpreterVisitor {
     private Memory memory = new Memory(null);
-    private final PrintWriter out = new PrintWriter(System.out);
+    private final PrintWriter out = new PrintWriter(System.out, true);
     private final StandardLibrary stdlib;
 
     public Interpreter(Path fileDir) {
@@ -431,7 +431,7 @@ public class Interpreter implements InterpreterVisitor {
         Token op = node.getOp();
         Value value = node.getUnaryExpression().accept(this);
         if (op.getTokenType() == NOT) {
-            if (value.getType() == BOOL) return Value.of(!value.toBoolean());
+            if (value.getType() == BOOL || value.getType() == DataType.NONE) return Value.of(!value.toBoolean());
             throw new MrixRuntimeException("Invalid type for NOT operator: " + value.getType(), op.getLine());
         }
         if (op.getTokenType() == SUB) {
