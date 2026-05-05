@@ -27,7 +27,7 @@ Mrix supports following data types:
 + **TUPLE** - An immutable, ordered collection of values of any type.
   + Example: `my_tuple = (1, "text", [1, 2]);`
 
-+ *NULL* - Represents the absence of a value, it is used to indicate that a function or operation does not return a result (void). It is not possible to declare this type explicitly.
++ *NONE* - Represents the absence of a value, it is used to indicate that a function or operation does not return a result (void). It is possible to declare this type using `none` keyword. In logical expressions, it evaluates to `false`.
 
 + *ANY* - Special data type used by the type-checker during the static analysis phase. This type is evaluated at runtime. It is not possible to declare this type explicitly.
 
