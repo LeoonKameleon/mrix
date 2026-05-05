@@ -7,6 +7,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Function;
 
 import mrix.exception.StandardLibraryException;
@@ -18,6 +19,7 @@ import mrix.typing.type.DataType;
 public class StandardLibrary {
     private final HashMap<String, Function<List<Value>, Value>> functions = new HashMap<>();
     private final Path fileDir;
+    private final Random rng = new Random();
 
     public StandardLibrary(Path fileDir) {
         this.fileDir = fileDir;
@@ -529,6 +531,42 @@ public class StandardLibrary {
                 return Value.of(new TupleValue(values.reversed()));
             }
             throw new StandardLibraryException("reverse() does not support " + arg.getType() + " type");
+        });
+        functions.put("rand", args -> {
+            if (!args.isEmpty()) throw new StandardLibraryException("rand() expects 0 arguments, but got " + args.size());
+            return new Value(rng.nextDouble(), FLOAT);
+        });
+        functions.put("randint", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("randint() expects 2 arguments, but got " + args.size());
+            Value min = args.get(0);
+            Value max = args.get(1);
+            if (min.getType() != INT || max.getType() != INT) throw new StandardLibraryException("randint() expects INT arguments");
+            long minVal = min.toLong();
+            long maxVal = max.toLong();
+            if (minVal > maxVal) throw new StandardLibraryException("randint() min cannot be greater than max");
+            return Value.of(rng.nextLong((maxVal - minVal + 1)) + minVal);
+        });
+        functions.put("randmat", args -> {
+            if (args.size() != 2) throw new StandardLibraryException("randmat() expects 2 arguments, but got " + args.size());
+            Value rows = args.get(0);
+            Value cols = args.get(1);
+            if (rows.getType() != INT || cols.getType() != INT) throw new StandardLibraryException("randmat() expects INT arguments");
+            int rowsVal = rows.toInt();
+            int colsVal = cols.toInt();
+            double[][] matrix = new double[rowsVal][colsVal];
+            for (int i = 0; i < rowsVal; i++) {
+                for (int j = 0; j < colsVal; j++) {
+                    matrix[i][j] = rng.nextDouble();
+                }
+            }
+            return new Value(matrix, MATRIX);
+        });
+        functions.put("seed", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("seed() expects 1 argument, but got " + args.size());
+            Value seed = args.getFirst();
+            if (seed.getType() != INT) throw new StandardLibraryException("seed() expects INT argument");
+            rng.setSeed(seed.toLong());
+            return Value.NONE;
         });
         functions.put("f_read", args -> {
             if (args.size() != 1) throw new StandardLibraryException("f_read() expects 1 argument, but got " + args.size());
