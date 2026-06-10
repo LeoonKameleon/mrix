@@ -5,18 +5,18 @@ import mrix.scanner.token.Token;
 import mrix.typing.type.DataType;
 
 public class IterNode extends AbstractNode {
-    private final Token id;
+    private final Node id;
     private final Node iterable;
     private final Node instruction;
 
-    public IterNode(Token id, Node iterable, Node instruction, int line) {
+    public IterNode(Node id, Node iterable, Node instruction, int line) {
         super(line);
         this.id = id;
         this.iterable = iterable;
         this.instruction = instruction;
     }
 
-    public Token getId() {
+    public Node getId() {
         return id;
     }
 

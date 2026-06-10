@@ -1,1 +1,13 @@
-print randmat(4, 5);
+a = hmap{};
+a["klaudia"] = eye(7);
+a[1] = eye(7);
+a[2] = eye(7);
+a[3] = eye(7);
+
+print a;
+
+print a["klaudia"];
+
+iter t in a {
+    print hash(t);
+}

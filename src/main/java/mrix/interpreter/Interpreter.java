@@ -1,5 +1,6 @@
 package mrix.interpreter;
 
+import mrix.interpreter.value.HMapValue;
 import mrix.parser.Parser;
 import mrix.scanner.Scanner;
 import mrix.interpreter.flow.BreakException;
@@ -16,6 +17,7 @@ import mrix.typing.type.DataType;
 
 import static mrix.scanner.token.TokenType.*;
 import static mrix.typing.type.DataType.*;
+import static mrix.typing.type.DataType.HMAP;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -45,7 +47,7 @@ public class Interpreter implements InterpreterVisitor {
                         sb.append((int) matrix[i][j]);
                     else
                         sb.append(matrix[i][j]);
-                    if (j < matrix[i].length - 1) sb.append(", ");
+                    if (j < matrix[i].length - 1) sb.append(" ");
                 }
                 sb.append("]");
                 if (i < matrix.length - 1) sb.append("\n");
@@ -53,6 +55,9 @@ public class Interpreter implements InterpreterVisitor {
             return sb.toString();
         }
         if (v.getType() == TUPLE) {
+            return v.getValue().toString();
+        }
+        if (v.getType() == HMAP) {
             return v.getValue().toString();
         }
         return String.valueOf(v.getValue());
@@ -70,7 +75,14 @@ public class Interpreter implements InterpreterVisitor {
                 int idx = toIndex(variable.getExpressionList().getFirst().accept(this), tuple.getValues().size(), variable.getLine());
                 return tuple.getValues().get(idx);
             }
-
+            if (value.getType() == HMAP) {
+                HMapValue hmap = value.toHMap();
+                Value key = variable.getExpressionList().getFirst().accept(this);
+                if (!hmap.containsKey(key)) {
+                    throw new MrixRuntimeException("Key not found in hmap", variable.getLine());
+                }
+                return hmap.get(key);
+            }
             double[][] matrix = value.toMatrix();
             if (matrix.length == 1) {
                 int col;
@@ -291,6 +303,13 @@ public class Interpreter implements InterpreterVisitor {
                 }
                 return flat;
 
+            case HMAP:
+                List<Value> pairs = new ArrayList<>();
+                for (var e : v.toHMap().getMap().entrySet()) {
+                    pairs.add(Value.of(new TupleValue(List.of(e.getKey(), e.getValue()))));
+                }
+                return pairs;
+
             case ANY:
                 throw new MrixRuntimeException("Cannot iterate over ANY type", line);
 
@@ -332,6 +351,15 @@ public class Interpreter implements InterpreterVisitor {
             }
             if (existing.getType() == TUPLE) {
                 throw new MrixRuntimeException("Tuples are immutable. Cannot assign to element of '" + name + "'", variable.getLine());
+            }
+            if (existing.getType() == HMAP) {
+                HMapValue hmap = existing.toHMap();
+                Value key = variable.getExpressionList().getFirst().accept(this);
+                if (key.getType() == MATRIX || key.getType() == HMAP) {
+                    throw new MrixRuntimeException("Invalid hmap key type: " + key.getType(), variable.getLine());
+                }
+                hmap.put(key, value);
+                return;
             }
             if (existing.getType() == MATRIX) {
                 double[][] matrix = existing.toMatrix();
@@ -603,16 +631,22 @@ public class Interpreter implements InterpreterVisitor {
     }
 
     public Value visitIterNode(IterNode node) {
-        String id = node.getId().getLexeme();
-
         Value iterableValue = node.getIterable().accept(this);
         List<Value> elements = toIterable(iterableValue, node.getLine());
-
         memory = memory.push();
-
         for (Value v : elements) {
-            memory.put(id, v);
-
+            if (node.getId() instanceof TuplePatternNode pattern) {
+                List<Token> ids = pattern.getIds();
+                List<Value> values = v.toTuple().getValues();
+                if (ids.size() != values.size()) {
+                    throw new MrixRuntimeException("Tuple size mismatch in iter", node.getLine());
+                }
+                for (int i = 0; i < ids.size(); i++) {
+                    memory.put(ids.get(i).getLexeme(), values.get(i));
+                }
+            } else {
+                memory.put(((VariableNode) node.getId()).getId().getLexeme(), v);
+            }
             try {
                 node.getInstruction().accept(this);
             } catch (BreakException e) {
@@ -620,7 +654,6 @@ public class Interpreter implements InterpreterVisitor {
             } catch (ContinueException _) {
             }
         }
-
         memory = memory.pop();
         return null;
     }
@@ -764,6 +797,23 @@ public class Interpreter implements InterpreterVisitor {
 
     public Value visitTuplePatternNode(TuplePatternNode node) {
         return null; 
+    }
+
+    public Value visitHMapNode(HMapNode node) {
+        HMapValue map = new HMapValue();
+        List<Node> keys = node.getKeys();
+        List<Node> values = node.getValues();
+        if (keys.size() != values.size()) {
+            throw new MrixRuntimeException("HMap size mismatch. Expected " + keys.size() + " elements, got " + values.size(), node.getLine());
+        }
+        for (int i = 0; i < keys.size(); i++) {
+            Value key = keys.get(i).accept(this);
+            if (key.getType() == MATRIX || key.getType() == HMAP) {
+                throw new MrixRuntimeException("Invalid hmap key type: " + key.getType(), node.getLine());
+            }
+            map.put(key, values.get(i).accept(this));
+        }
+        return new Value(map, HMAP);
     }
 
     public void finish() {

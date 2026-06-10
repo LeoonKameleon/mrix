@@ -43,6 +43,10 @@ public class Value {
         return new Value(t, DataType.TUPLE);
     }
 
+    public static Value of(HMapValue h) {
+        return new Value(h, DataType.HMAP);
+    }
+
     public Object getValue() {
         return value;
     }
@@ -84,18 +88,28 @@ public class Value {
         return (TupleValue) value;
     }
 
+    public HMapValue toHMap() {
+        return (HMapValue) value;
+    }
+
     @Override
     public int hashCode() {
-        if (value instanceof double[][] m) {
-            return java.util.Arrays.deepHashCode(m);
-        }
-        return Objects.hash(value);
+        return switch (type) {
+            case INT, FLOAT, BOOL -> Double.hashCode(toDouble());
+            case MATRIX -> java.util.Arrays.deepHashCode((double[][]) value);
+            default -> Objects.hash(value);
+        };
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Value other)) return false;
+        boolean thisNumeric = type == INT || type == FLOAT || type == BOOL;
+        boolean otherNumeric = other.type == INT || other.type == FLOAT || other.type == BOOL;
+        if (thisNumeric && otherNumeric) {
+            return Double.compare(this.toDouble(), other.toDouble()) == 0;
+        }
         if (this.value instanceof double[][] m1 && other.value instanceof double[][] m2) {
             return java.util.Arrays.deepEquals(m1, m2);
         }

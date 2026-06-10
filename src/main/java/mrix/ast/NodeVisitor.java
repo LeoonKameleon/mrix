@@ -28,4 +28,5 @@ public interface NodeVisitor {
     DataType visitImportNode(ImportNode node);
     DataType visitTupleNode(TupleNode node);
     DataType visitTuplePatternNode(TuplePatternNode node);
+    DataType visitHMapNode(HMapNode node);
 }

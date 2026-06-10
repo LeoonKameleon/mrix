@@ -117,7 +117,22 @@ public class Parser {
 
     private Node parseIterStatement() {
         Token t = expect(ITER);
-        Token iterator = expect(ID);
+        Node iterator;
+        if (check(LEFT_PAREN)) {
+            consume();
+            List<Token> ids = new ArrayList<>();
+            ids.add(expect(ID));
+            while (check(COMMA)) {
+                consume();
+                if (check(RIGHT_PAREN)) break;
+                ids.add(expect(ID));
+            }
+            expect(RIGHT_PAREN);
+            iterator = new TuplePatternNode(ids, t.getLine());
+        } else {
+            Token id = expect(ID);
+            iterator = new VariableNode(id, null, id.getLine());
+        }
         expect(IN);
         Node iterable = parseExpression();
         Node instruction = parseInstruction();
@@ -313,7 +328,23 @@ public class Parser {
             if (peek(1).getTokenType() == LEFT_PAREN) return parseFunctionCall();
             return parseVariable();
         }
+        if (check(HMAP)) return parseHMap();
         throw new RuntimeException("Line " + tokens.get(position).getLine() + " Parse error: Unexpected token: " + tokens.get(position).getTokenType());
+    }
+
+    private Node parseHMap() {
+        Token t = consume();
+        expect(LEFT_BRACE);
+        List<Node> keys = new ArrayList<>();
+        List<Node> values = new ArrayList<>();
+        while (!check(RIGHT_BRACE)) {
+            keys.add(parseExpression());
+            expect(COLON);
+            values.add(parseExpression());
+            if (check(COMMA)) consume();
+        }
+        expect(RIGHT_BRACE);
+        return new HMapNode(keys, values, t.getLine());
     }
 
     private List<Node> parseExpressionList() {

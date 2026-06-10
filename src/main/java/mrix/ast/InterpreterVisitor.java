@@ -28,4 +28,5 @@ public interface InterpreterVisitor {
     Value visitImportNode(ImportNode node);
     Value visitTupleNode(TupleNode node);
     Value visitTuplePatternNode(TuplePatternNode node);
+    Value visitHMapNode(HMapNode node);
 }

@@ -12,6 +12,7 @@ import mrix.typing.type.DataType;
 
 import static mrix.scanner.token.TokenType.*;
 import static mrix.typing.type.DataType.*;
+import static mrix.typing.type.DataType.HMAP;
 import static mrix.typing.type.DataType.NONE;
 
 import java.nio.file.Path;
@@ -54,7 +55,7 @@ public class TypeChecker implements NodeVisitor {
 
         for (Node indexExpr : indices) {
             DataType indexType = indexExpr.accept(this);
-            if (indexType != INT && indexType != ANY) {
+            if (type != HMAP && indexType != INT && indexType != ANY) {
                 errors.add("Line " + node.getLine() + ": Index must be INT, but got " + indexType);
             }
         }
@@ -64,6 +65,13 @@ public class TypeChecker implements NodeVisitor {
                 errors.add("Line " + node.getLine() + ": Tuples support only 1D indexing");
             }
             return ANY; 
+        }
+
+        if (type == HMAP) {
+            if (indices.size() > 1) {
+                errors.add("Line " + node.getLine() + ": HMaps support only single key indexing");
+            }
+            return ANY;
         }
 
         if (type == MATRIX) {
@@ -124,13 +132,13 @@ public class TypeChecker implements NodeVisitor {
 
                 DataType currentType = symbol.getType();
 
-                if (currentType != TUPLE && currentType != MATRIX && currentType != ANY) {
+                if (currentType != TUPLE && currentType != MATRIX && currentType != HMAP && currentType != ANY) {
                     errors.add("Line " + node.getLine() + ": Cannot assign to element of type " + currentType);
                 }
 
                 for (Node indexExpr : indices) {
                     DataType indexType = indexExpr.accept(this);
-                    if (indexType != INT && indexType != ANY) {
+                    if (currentType != HMAP && indexType != INT && indexType != ANY) {
                         errors.add("Line " + node.getLine() + ": Index must be INT");
                     }
                 }
@@ -364,10 +372,19 @@ public class TypeChecker implements NodeVisitor {
     public DataType visitIterNode(IterNode node) {
         DataType iterableType = node.getIterable().accept(this);
         if (iterableType == TUPLE || iterableType == DataType.STRING
-                || iterableType == MATRIX || iterableType == ANY) {
-            Token id = node.getId();
+                || iterableType == MATRIX || iterableType == HMAP || iterableType == ANY) {
             table = table.pushScope();
-            table.put(id.getLexeme(), new VariableSymbol(id.getLexeme(), getElementType(iterableType)));
+
+            if (node.getId() instanceof TuplePatternNode pattern) {
+                for (Token id : pattern.getIds()) {
+                    table.put(id.getLexeme(), new VariableSymbol(id.getLexeme(), ANY));
+                }
+            } else {
+                VariableNode var = (VariableNode) node.getId();
+                String name = var.getId().getLexeme();
+                table.put(name, new VariableSymbol(name, getElementType(iterableType)));
+            }
+
             loopDepth++;
             node.getInstruction().accept(this);
             loopDepth--;
@@ -482,6 +499,17 @@ public class TypeChecker implements NodeVisitor {
 
     public DataType visitTuplePatternNode(TuplePatternNode node) {
         return UNKNOWN; 
+    }
+
+    public DataType visitHMapNode(HMapNode node) {
+        for (int i = 0; i < node.getKeys().size(); i++) {
+            DataType keyType = node.getKeys().get(i).accept(this);
+            if (keyType == MATRIX || keyType == HMAP) {
+                errors.add("Line " + node.getLine() + ": Invalid hmap key type: " + keyType);
+            }
+            node.getValues().get(i).accept(this);
+        }
+        return HMAP;
     }
 
     private DataType getElementType(DataType iterableType) {
