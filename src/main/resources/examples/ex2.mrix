@@ -11,3 +11,9 @@ print a["klaudia"];
 iter t in a {
     print hash(t);
 }
+
+
+b = hmap{1: 5};
+c = hmap{1: 5};
+
+print b == c;

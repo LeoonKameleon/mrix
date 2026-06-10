@@ -2,11 +2,11 @@
 
 ## 1. Introduction
 <p align="justify">
-Mrix is a dynamically-typed, interpreted language designed for matrix manipulation. The interpreter is implemented in Java 23.
+Mrix is a dynamically typed, interpreted language designed for matrix manipulation. The interpreter is implemented in Java 23.
 </p>
 
 ## 2. Data Types
-Mrix supports following data types:
+Mrix supports the following data types:
 + **INT** - 64-bit signed integer.
   + Example: `int_value = 5;`
 
@@ -26,6 +26,9 @@ Mrix supports following data types:
 
 + **TUPLE** - An immutable, ordered collection of values of any type.
   + Example: `my_tuple = (1, "text", [1, 2]);`
+
++ **HMAP** - A key-value map.
+  + Example: `my_hmap = hmap{7: 8}`
 
 + *NONE* - Represents the absence of a value, it is used to indicate that a function or operation does not return a result (void). It is possible to declare this type using `none` keyword. In logical expressions, it evaluates to `false`.
 
@@ -133,7 +136,7 @@ t[0] = 20; // results in an error (immutability)
 ```
 
 ### Unpacking
-Mrix supports tuple unpacking allowing assignment of multiple values to variables in a single statement:
+Mrix supports tuple unpacking, allowing assignment of multiple values to variables in a single statement:
 ```mrix
 funct get_coords() {
     return (10, 20);
@@ -145,7 +148,7 @@ print y; // 20
 ```
 
 ### Comparison
-Tuples support equality operators. Two tuples are considered equal if they have the same length and all their elements at corresponding indices are equal.
+Tuples supports equality operators. Two tuples are considered equal if they have the same length and all their elements at corresponding indices are equal.
 
 ```mrix
 t1 = (1, [1, 2], (3, 4));
@@ -156,7 +159,56 @@ t3 = (1, [1, 2], (9, 9));
 print t1 == t3; // false
 ```
 
-## 7. Logic and Comparison
+## 7. HMaps
+HMap is a data structure that allows for storing key-value pairs.
+
+### Initialization
+HMap is defined using curly braces:
+```mrix
+empty = hmap{};
+filled = hmap{1: "a", "bc": 3.14, 4: eye(5)};
+```
+
+### Accessing elements
+HMap elements can be accessed using square brackets or by their key:
+```mrix
+print filled[1]; // "a"
+filled["a"] = 2;
+print filled["a"]; // 2
+```
+
+### Key types
+Keys can be of type **INT**, **FLOAT**, **BOOL**, **STRING** or **TUPLE**.
+**MATRIX** and **HMAP** cannot be used as keys.
+```mrix
+h = hmap{1: "int key", 1.5: "float key", true: "bool key"};
+h = hmap{(1, 2): "tuple key"};
+h = hmap{[[1,2]]: "error"}; // results in an error
+```
+
+### Iteration
+HMap supports iteration using `iter`. Each element is yielded as a **(key, value)** tuple:
+```mrix
+h = hmap{"a": 1, "b": 2};
+
+iter (k, v) in h {
+    print k, v;
+}
+
+iter t in h {
+    print t; // (a, 1), (b, 2)
+}
+```
+
+### Comparison
+Two hmaps are equal if they contain the same key-value pairs:
+```mrix
+h1 = hmap{1: "a", 2: "b"};
+h2 = hmap{1: "a", 2: "b"};
+print h1 == h2; // true
+```
+
+## 8. Logic and Comparison
 These operators evaluate expressions and return a **BOOL** value:
 
 ### Comparison operators
@@ -181,13 +233,13 @@ Mrix uses **deep equality** for comparison of complex data structures.
 + **Mixed Types**: Comparison between different data types (e.g., `5 == "5"` or `[1, 2] == (1, 2)`) always returns `false`.
 
 
-## 8. Matrix generators
+## 9. Matrix generators
 Built-in instructions for quick matrix creation:
 + `eye(n)` or `eye(r, c)` - Identity matrix.
 + `zeros(n)` or `zeros(r, c)` - Matrix filled with `0.0`.
 + `ones(n)` or `ones(r, c)` - Matrix filled with `1.0`.
 
-## 9. Control flow
+## 10. Control flow
 ### Conditional statements
 ```mrix
 if (condition) {
@@ -209,6 +261,41 @@ for i = 0:14 {
 }
 ```
 **Note**: In `for` loops the range is **inclusive**.
+
+### Iter loop
+The `iter` loop iterates over elements of a **STRING**, **TUPLE**, **MATRIX** or **HMAP**:
+```mrix
+iter x in (1, 2, 3) {
+    print x; // 1, 2, 3
+}
+
+iter c in "mrix" {
+    print c; // m, r, i, x
+}
+
+iter x in [1, 2, 3] {
+    print x; // 1.0, 2.0, 3.0
+}
+
+iter i in range(1, 3) {
+    print i; // 1, 2, 3
+}
+```
+
+For **HMAP**, each element is yielded as a **(key, value)** tuple.
+Tuple unpacking is supported:
+```mrix
+h = hmap{"a": 1, "b": 2};
+
+iter (k, v) in h {
+    print k, v; // a 1, b 2
+}
+
+iter t in h {
+    print t; // (a, 1), (b, 2)
+}
+```
+
 ### Loop Control Statements
 Mrix provides two keywords to control the execution flow within loops:
 + `break` - Immediately terminates the innermost loop.
@@ -218,11 +305,11 @@ Mrix provides two keywords to control the execution flow within loops:
 for i = 1:10 {
     if (i == 3) continue; // skip number 3
     if (i == 7) break; // stop the loop when i reaches 7
-    print i; // prints: 1, 2, 4, 5, 6
+    print i; // 1, 2, 4, 5, 6
 }
 ```
 
-## 10. Functions
+## 11. Functions
 Functions in mrix support recursion and returning values. They are defined with `funct` keyword:
 ```mrix
 funct add(a, b) {
@@ -232,7 +319,7 @@ funct add(a, b) {
 a = add(1, 4);
 ```
 
-## 11. Imports
+## 12. Imports
 Mrix supports importing code from other `.mrix` files using `import` keyword:
 <table>
 <tr>
@@ -311,12 +398,21 @@ The path can be relative or absolute. Its type must be **STRING**.
 |      `matrix(x)`      |                                    `x:` **TUPLE**                                    |                             Returns numeric tuple `x` as **MATRIX**                             |       **MATRIX**        |
 | `range(s, e, [step])` |                      `s:` **INT** `e:` **INT** `step:` **INT**                       |                    Returns a sequence from `s` to `e`. `step` defaults to 1.                    |        **TUPLE**        |
 |     `reverse(x)`      |                              `x:` **STRING**, **TUPLE**                              |                                  Returns `x` in reverse order.                                  | **STRING** or **TUPLE** |
+|       `hash(x)`       |               `x:` **INT**, **FLOAT**, **STRING**, **BOOL**, **TUPLE**               |                                     Returns the hash of `x`                                     |         **INT**         |
+
+### Random
+|    Function     |      Accepted types       |                                      Description                                       | Return type |
+|:---------------:|:-------------------------:|:--------------------------------------------------------------------------------------:|:-----------:|
+|    `seed(x)`    |       `x:` **INT**        |                         Sets the random generator seed to `x`.                         |   *NONE*    |
+|    `rand()`     |          *NONE*           |                   Returns a random **FLOAT** number between 0 and 1.                   |  **FLOAT**  |
+| `randint(a, b)` | `a:` **INT** `b:` **INT** |                     Returns a random integer between `a` and `b`.                      |   **INT**   |
+| `randmat(r, c)` | `r:` **INT** `c:` **INT** | Returns a matrix of size `(r, c)` filled with random **FLOAT** numbers between 0 and 1 | **MATRIX**  |
 
 ### File I/O
 | Function | Accepted types | Description | Return type |
-| :---: | :---: | :---: | :---: |
-| `f_read(path)` | `path:` **STRING** | Returns the content of the file at `path`. | **STRING** |
-| `f_readline(path, i)` | `path:` **STRING** `i:` **INT** | Returns the `i`-th line of the file at `path`. | **STRING** |
-| `f_lines(path)` | `path:` **STRING** | Returns the number of lines in the file at `path`. | **INT** |
-| `f_write(path, s)` | `path:` **STRING** `s:` **STRING** | Writes `s` to the file at `path`. Creates the file if it doesn't exist. | *NULL* |
-| `f_append(path, s)` | `path:` **STRING** `s:` **STRING** | Appends `s` to the end of the file at `path`. Creates the file if it doesn't exist. | *NULL* |
+| :---: | :---: | :---: |:-----------:|
+| `f_read(path)` | `path:` **STRING** | Returns the content of the file at `path`. | **STRING**  |
+| `f_readline(path, i)` | `path:` **STRING** `i:` **INT** | Returns the `i`-th line of the file at `path`. | **STRING**  |
+| `f_lines(path)` | `path:` **STRING** | Returns the number of lines in the file at `path`. |   **INT**   |
+| `f_write(path, s)` | `path:` **STRING** `s:` **STRING** | Writes `s` to the file at `path`. Creates the file if it doesn't exist. |   *NONE*    |
+| `f_append(path, s)` | `path:` **STRING** `s:` **STRING** | Appends `s` to the end of the file at `path`. Creates the file if it doesn't exist. |   *NONE*    |
