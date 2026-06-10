@@ -427,6 +427,9 @@ public class StandardLibrary {
             if (arg.getType() == BOOL) {
                 return new Value(Boolean.toString(arg.toBoolean()), STRING);
             }
+            if (arg.getType() == NONE) {
+                return new Value(String.valueOf(arg.toString()), STRING);
+            }
             if (arg.getType() == STRING) {
                 return arg;
             }
@@ -567,6 +570,14 @@ public class StandardLibrary {
             if (seed.getType() != INT) throw new StandardLibraryException("seed() expects INT argument");
             rng.setSeed(seed.toLong());
             return Value.NONE;
+        });
+        functions.put("hash", args -> {
+            if (args.size() != 1) throw new StandardLibraryException("hash() expects 1 argument, but got " + args.size());
+            Value arg = args.getFirst();
+            if (arg.getType() != MATRIX && arg.getType() != HMAP) {
+                return Value.of(args.get(0).hashCode());
+            }
+            throw new StandardLibraryException("hash() does not support " + arg.getType() + " type");
         });
         functions.put("f_read", args -> {
             if (args.size() != 1) throw new StandardLibraryException("f_read() expects 1 argument, but got " + args.size());
