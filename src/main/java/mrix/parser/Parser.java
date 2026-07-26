@@ -1,13 +1,13 @@
 package mrix.parser;
 
-import static mrix.scanner.token.TokenType.*;
+import mrix.ast.*;
+import mrix.scanner.token.Token;
+import mrix.scanner.token.TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import mrix.ast.*;
-import mrix.scanner.token.Token;
-import mrix.scanner.token.TokenType;
+import static mrix.scanner.token.TokenType.*;
 
 public class Parser {
     private final List<Token> tokens;
@@ -189,17 +189,11 @@ public class Parser {
         Token op = consume();
         Node right = parseExpression();
 
-        switch (op.getTokenType()) {
-            case ASSIGN:
-            case ADD_ASSIGN:
-            case SUB_ASSIGN:
-            case MUL_ASSIGN:
-            case DIV_ASSIGN:
-            case MOD_ASSIGN:
-                return new AssignNode(left, op, right, op.getLine());
-            default:
-                throw new RuntimeException("Expected assignment operator");
-        }
+        return switch (op.getTokenType()) {
+            case ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN ->
+                    new AssignNode(left, op, right, op.getLine());
+            default -> throw new RuntimeException("Expected assignment operator");
+        };
     }
 
     private Node parseVariable() {

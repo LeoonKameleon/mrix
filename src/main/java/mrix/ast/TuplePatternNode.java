@@ -1,10 +1,10 @@
 package mrix.ast;
 
-import java.util.List;
-
 import mrix.interpreter.value.Value;
 import mrix.scanner.token.Token;
 import mrix.typing.type.DataType;
+
+import java.util.List;
 
 public class TuplePatternNode extends AbstractNode {
     private final List<Token> ids;

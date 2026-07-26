@@ -1,15 +1,15 @@
 package mrix.scanner;
 
-import static mrix.scanner.token.TokenType.*;
+import mrix.Mrix;
+import mrix.scanner.token.Token;
+import mrix.scanner.token.TokenType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import mrix.Mrix;
-import mrix.scanner.token.Token;
-import mrix.scanner.token.TokenType;
+import static mrix.scanner.token.TokenType.*;
 
 public class Scanner {
     private final List<Token> tokens = new ArrayList<>();

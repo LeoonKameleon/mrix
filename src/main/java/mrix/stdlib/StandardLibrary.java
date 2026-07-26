@@ -1,5 +1,10 @@
 package mrix.stdlib;
 
+import mrix.exception.StandardLibraryException;
+import mrix.interpreter.value.TupleValue;
+import mrix.interpreter.value.Value;
+import mrix.typing.type.DataType;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,11 +15,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
-import mrix.exception.StandardLibraryException;
-import mrix.interpreter.value.TupleValue;
-import mrix.interpreter.value.Value;
 import static mrix.typing.type.DataType.*;
-import mrix.typing.type.DataType;
 
 public class StandardLibrary {
     private final HashMap<String, Function<List<Value>, Value>> functions = new HashMap<>();

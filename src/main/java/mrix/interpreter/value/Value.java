@@ -1,9 +1,10 @@
 package mrix.interpreter.value;
 
 import mrix.typing.type.DataType;
-import static mrix.typing.type.DataType.*;
 
 import java.util.Objects;
+
+import static mrix.typing.type.DataType.*;
 
 public class Value {
     private final Object value;

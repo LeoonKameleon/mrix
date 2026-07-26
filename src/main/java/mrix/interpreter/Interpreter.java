@@ -1,23 +1,19 @@
 package mrix.interpreter;
 
-import mrix.interpreter.value.HMapValue;
-import mrix.parser.Parser;
-import mrix.scanner.Scanner;
+import mrix.ast.*;
+import mrix.exception.MrixRuntimeException;
+import mrix.exception.StandardLibraryException;
 import mrix.interpreter.flow.BreakException;
 import mrix.interpreter.flow.ContinueException;
-import mrix.exception.MrixRuntimeException;
 import mrix.interpreter.flow.ReturnException;
-import mrix.exception.StandardLibraryException;
+import mrix.interpreter.value.HMapValue;
 import mrix.interpreter.value.TupleValue;
 import mrix.interpreter.value.Value;
-import mrix.ast.*;
-import mrix.stdlib.StandardLibrary;
+import mrix.parser.Parser;
+import mrix.scanner.Scanner;
 import mrix.scanner.token.Token;
+import mrix.stdlib.StandardLibrary;
 import mrix.typing.type.DataType;
-
-import static mrix.scanner.token.TokenType.*;
-import static mrix.typing.type.DataType.*;
-import static mrix.typing.type.DataType.HMAP;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,6 +22,10 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import static mrix.scanner.token.TokenType.*;
+import static mrix.typing.type.DataType.*;
+import static mrix.typing.type.DataType.HMAP;
 
 public class Interpreter implements InterpreterVisitor {
     private Memory memory = new Memory(null);
@@ -318,6 +318,7 @@ public class Interpreter implements InterpreterVisitor {
         }
     }
 
+    @Override
     public Value visitPrimaryNode(PrimaryNode node) {
         if (node.getCachedValue() != null) return node.getCachedValue();
         Token token = node.getValue();
@@ -335,6 +336,7 @@ public class Interpreter implements InterpreterVisitor {
         return result;
     }
 
+    @Override
     public Value visitVariableNode(VariableNode node) {
         Value value = getVariable(node);
         if (value == null)
@@ -378,6 +380,7 @@ public class Interpreter implements InterpreterVisitor {
         else memory.set(name, value);
     }
 
+    @Override
     public Value visitAssignNode(AssignNode node) {
         Value value = node.getExpression().accept(this);
         if (node.getVariable() instanceof TuplePatternNode pattern) {
@@ -435,6 +438,7 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitBinaryOpNode(BinaryOpNode node) {
         Token op = node.getOp();
         if (op.getTokenType() == AND) {
@@ -453,6 +457,7 @@ public class Interpreter implements InterpreterVisitor {
         return applyOp(leftValue, op, rightValue);
     }
 
+    @Override
     public Value visitUnaryOpNode(UnaryOpNode node) {
         Token op = node.getOp();
         Value value = node.getUnaryExpression().accept(this);
@@ -478,6 +483,7 @@ public class Interpreter implements InterpreterVisitor {
         throw new MrixRuntimeException("Invalid operand for unary operator: " + op.getTokenType(), op.getLine());
     }
 
+    @Override
     public Value visitPostfixNode(PostfixNode node) {
         Token op = node.getOp();
         Value value = node.getPrimary().accept(this);
@@ -507,6 +513,7 @@ public class Interpreter implements InterpreterVisitor {
         throw new MrixRuntimeException("Unknown postfix operator: '" + op.getLexeme() + "'", op.getLine());
     }
 
+    @Override
     public Value visitMatrixNode(MatrixNode node) {
         List<List<Node>> rows = node.getRows();
         int rowCount = rows.size();
@@ -526,6 +533,7 @@ public class Interpreter implements InterpreterVisitor {
         return new Value(result, MATRIX);
     }
 
+    @Override
     public Value visitFlatMatrixNode(FlatMatrixNode node) {
         List<Node> row = node.getExpressionList();
         double[][] result = new double[1][row.size()];
@@ -537,6 +545,7 @@ public class Interpreter implements InterpreterVisitor {
         return new Value(result, MATRIX);
     }
 
+    @Override
     public Value visitCreateMatrixNode(CreateMatrixNode node) {
         List<Node> expressionList = node.getExpressionList();
         Token fun = node.getFun();
@@ -571,6 +580,7 @@ public class Interpreter implements InterpreterVisitor {
         return new Value(result, MATRIX);
     }
 
+    @Override
     public Value visitIfNode(IfNode node) {
         Value value = node.getCondition().accept(this);
         if (value.getType() != BOOL) {
@@ -581,6 +591,7 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitWhileNode(WhileNode node) {
         memory = memory.push();
         Value value = node.getCondition().accept(this);
@@ -600,6 +611,7 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitForNode(ForNode node) {
         long rangeStart = node.getRangeStart().accept(this).toLong();
         long rangeEnd = node.getRangeEnd().accept(this).toLong();
@@ -630,6 +642,7 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitIterNode(IterNode node) {
         Value iterableValue = node.getIterable().accept(this);
         List<Value> elements = toIterable(iterableValue, node.getLine());
@@ -658,14 +671,17 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitBreakNode(BreakNode node) {
         throw new BreakException();
     }
 
+    @Override
     public Value visitContinueNode(ContinueNode node) {
         throw new ContinueException();
     }
 
+    @Override
     public Value visitPrintNode(PrintNode node) {
         List<Node> expressionList = node.getExpressionList();
         for (int i = 0; i < expressionList.size(); i++) {
@@ -690,6 +706,7 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitReturnNode(ReturnNode node) {
         Node expression = node.getExpression();
         if (expression == null) throw new ReturnException(Value.NONE);
@@ -697,6 +714,7 @@ public class Interpreter implements InterpreterVisitor {
         throw new ReturnException(v == null ? Value.NONE : v);
     }
 
+    @Override
     public Value visitBlockNode(BlockNode node) {
         Node instructions = node.getInstructions();
         memory = memory.push();
@@ -705,6 +723,7 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitProgramNode(ProgramNode node) {
         List<Node> instructions = node.getInstructions();
         for (Node instruction : instructions) {
@@ -713,12 +732,14 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitFunctionNode(FunctionNode node) {
         String name = node.getId().getLexeme();
         memory.put(name, new Value(node, DataType.FUNCTION));
         return null;
     }
 
+    @Override
     public Value visitFunctionCallNode(FunctionCallNode node) {
         Token id = node.getId();
         if (stdlib.has(id.getLexeme())) {
@@ -767,10 +788,12 @@ public class Interpreter implements InterpreterVisitor {
         return result;
     }
 
+    @Override
     public Value visitExpressionNode(ExpressionNode node) {
         return node.getOrExpression().accept(this);
     }
 
+    @Override
     public Value visitImportNode(ImportNode node) {
         String path = node.getPath().getLiteral().toString();
         try {
@@ -786,6 +809,7 @@ public class Interpreter implements InterpreterVisitor {
         return null;
     }
 
+    @Override
     public Value visitTupleNode(TupleNode node ) {
         List<Value> values = new ArrayList<>();
         
@@ -795,10 +819,12 @@ public class Interpreter implements InterpreterVisitor {
         return new Value(new TupleValue(values), DataType.TUPLE);
     }
 
+    @Override
     public Value visitTuplePatternNode(TuplePatternNode node) {
         return null; 
     }
 
+    @Override
     public Value visitHMapNode(HMapNode node) {
         HMapValue map = new HMapValue();
         List<Node> keys = node.getKeys();

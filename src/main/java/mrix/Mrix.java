@@ -1,17 +1,17 @@
 package mrix;
 
+import mrix.ast.Node;
+import mrix.interpreter.Interpreter;
+import mrix.parser.Parser;
+import mrix.scanner.Scanner;
+import mrix.scanner.token.Token;
+import mrix.typing.TypeChecker;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
-import mrix.interpreter.Interpreter;
-import mrix.ast.Node;
-import mrix.parser.Parser;
-import mrix.scanner.token.Token;
-import mrix.scanner.Scanner;
-import mrix.typing.TypeChecker;
 
 public class Mrix {
     private static final boolean hadError = false;
@@ -34,8 +34,9 @@ public class Mrix {
         }
     }
     private static void runFile(String filename) throws IOException {
-        Path fileDir = Paths.get(filename).toAbsolutePath().getParent();
-        String content = Files.readString(Paths.get(filename));
+        Path path = Paths.get(filename);
+        Path fileDir = path.toAbsolutePath().getParent();
+        String content = Files.readString(path);
         run(content, fileDir);
         if (hadError) {
             System.exit(1);

@@ -1,23 +1,22 @@
 package mrix.typing;
 
+import mrix.ast.*;
 import mrix.parser.Parser;
 import mrix.scanner.Scanner;
-import mrix.ast.*;
-import mrix.stdlib.StandardLibrary;
 import mrix.scanner.token.Token;
 import mrix.scanner.token.TokenType;
+import mrix.stdlib.StandardLibrary;
 import mrix.typing.symbol.SymbolTable;
 import mrix.typing.symbol.VariableSymbol;
 import mrix.typing.type.DataType;
 
-import static mrix.scanner.token.TokenType.*;
-import static mrix.typing.type.DataType.*;
-import static mrix.typing.type.DataType.HMAP;
-import static mrix.typing.type.DataType.NONE;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import static mrix.scanner.token.TokenType.*;
+import static mrix.typing.type.DataType.*;
+import static mrix.typing.type.DataType.HMAP;
 
 public class TypeChecker implements NodeVisitor {
     private SymbolTable table = new SymbolTable(null);
@@ -29,17 +28,19 @@ public class TypeChecker implements NodeVisitor {
         stdlib = new StandardLibrary(fileDir);
     }
 
+    @Override
     public DataType visitPrimaryNode(PrimaryNode node) {
         return switch (node.getValue().getTokenType()) {
             case INT_NUM -> INT;
             case FLOAT_NUM -> FLOAT;
             case TokenType.STRING -> DataType.STRING;
             case TRUE, FALSE -> BOOL;
-            case NONE -> NONE;
+            case TokenType.NONE -> DataType.NONE;
             default -> UNKNOWN;
         };
     }
 
+    @Override
     public DataType visitVariableNode(VariableNode node) {
         VariableSymbol symbol = table.get(node.getId().getLexeme());
         if (symbol == null) {
@@ -86,6 +87,7 @@ public class TypeChecker implements NodeVisitor {
         return UNKNOWN;
     }
 
+    @Override
     public DataType visitAssignNode(AssignNode node) {
         DataType rightSideType = node.getExpression().accept(this);
 
@@ -156,6 +158,7 @@ public class TypeChecker implements NodeVisitor {
         return UNKNOWN;
     }
 
+    @Override
     public DataType visitBinaryOpNode(BinaryOpNode node) {
         DataType leftType = node.getLeft().accept(this);
         DataType rightType = node.getRight().accept(this);
@@ -242,11 +245,12 @@ public class TypeChecker implements NodeVisitor {
         }
     }
 
+    @Override
     public DataType visitUnaryOpNode(UnaryOpNode node) {
         Token op = node.getOp();
         DataType type = node.getUnaryExpression().accept(this);
         if (op.getTokenType() == NOT) {
-            if (type == BOOL || type == NONE) return BOOL;
+            if (type == BOOL || type == DataType.NONE) return BOOL;
             errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + NOT + "': " + type);
             return UNKNOWN;
         }
@@ -262,6 +266,7 @@ public class TypeChecker implements NodeVisitor {
         return UNKNOWN;
     }
 
+    @Override
     public DataType visitPostfixNode(PostfixNode node) {
         Token op = node.getOp();
         DataType type = node.getPrimary().accept(this);
@@ -275,6 +280,7 @@ public class TypeChecker implements NodeVisitor {
         return type;
     }
 
+    @Override
     public DataType visitMatrixNode(MatrixNode node) {
         int rowLength = -1;
         for (List<Node> row : node.getRows()) {
@@ -294,6 +300,7 @@ public class TypeChecker implements NodeVisitor {
         return MATRIX;
     }
 
+    @Override
     public DataType visitFlatMatrixNode(FlatMatrixNode node) {
         for (Node element : node.getExpressionList()) {
             DataType type = element.accept(this);
@@ -305,6 +312,7 @@ public class TypeChecker implements NodeVisitor {
         return MATRIX;
     }
 
+    @Override
     public DataType visitCreateMatrixNode(CreateMatrixNode node) {
         List<Node> expressionList = node.getExpressionList();
         Token fun = node.getFun();
@@ -329,6 +337,7 @@ public class TypeChecker implements NodeVisitor {
         }
     }
 
+    @Override
     public DataType visitIfNode(IfNode node) {
         DataType type = node.getCondition().accept(this);
         if (type != BOOL && type != ANY) {
@@ -339,6 +348,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitWhileNode(WhileNode node) {
         DataType type = node.getCondition().accept(this);
         if (type != BOOL && type != ANY) {
@@ -352,6 +362,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitForNode(ForNode node) {
         DataType rangeStartType = node.getRangeStart().accept(this);
         DataType rangeEndType = node.getRangeEnd().accept(this);
@@ -369,6 +380,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitIterNode(IterNode node) {
         DataType iterableType = node.getIterable().accept(this);
         if (iterableType == TUPLE || iterableType == DataType.STRING
@@ -396,6 +408,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitBreakNode(BreakNode node) {
         if (loopDepth <= 0) {
             errors.add("Line " + node.getLine() + ": Break statement outside of loop");
@@ -403,6 +416,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitContinueNode(ContinueNode node) {
         if (loopDepth <= 0) {
             errors.add("Line " + node.getLine() + ": Continue statement outside of loop");
@@ -410,6 +424,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitPrintNode(PrintNode node) {
         List<Node> expressionList = node.getExpressionList();
         for (Node element : expressionList) {
@@ -418,12 +433,14 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitReturnNode(ReturnNode node) {
         Node expression = node.getExpression();
-        if (expression == null) return NONE;
+        if (expression == null) return DataType.NONE;
         return expression.accept(this);
     }
 
+    @Override
     public DataType visitBlockNode(BlockNode node) {
         Node instructions = node.getInstructions();
         table = table.pushScope();
@@ -432,6 +449,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitProgramNode(ProgramNode node) {
         List<Node> instructions = node.getInstructions();
         for (Node instruction : instructions) {
@@ -440,6 +458,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitFunctionNode(FunctionNode node) {
         String name = node.getId().getLexeme();
         table.put(name, new VariableSymbol(name, DataType.FUNCTION));
@@ -452,6 +471,7 @@ public class TypeChecker implements NodeVisitor {
         return null;
     }
 
+    @Override
     public DataType visitFunctionCallNode(FunctionCallNode node) {
         Token id = node.getId();
         if (stdlib.has(id.getLexeme())) return ANY;
@@ -470,6 +490,7 @@ public class TypeChecker implements NodeVisitor {
         return ANY;
     }
 
+    @Override
     public DataType visitImportNode(ImportNode node) {
         String path = node.getPath().getLiteral().toString();
         try {
@@ -486,10 +507,12 @@ public class TypeChecker implements NodeVisitor {
     }
 
 
+    @Override
     public DataType visitExpressionNode(ExpressionNode node) {
         return node.getOrExpression().accept(this);
     }
 
+    @Override
     public DataType visitTupleNode(TupleNode node) {
         for (Node element : node.getElements()) {
             element.accept(this);
@@ -497,10 +520,12 @@ public class TypeChecker implements NodeVisitor {
         return TUPLE;
     }
 
+    @Override
     public DataType visitTuplePatternNode(TuplePatternNode node) {
         return UNKNOWN; 
     }
 
+    @Override
     public DataType visitHMapNode(HMapNode node) {
         for (int i = 0; i < node.getKeys().size(); i++) {
             DataType keyType = node.getKeys().get(i).accept(this);
@@ -516,8 +541,7 @@ public class TypeChecker implements NodeVisitor {
         return switch (iterableType) {
             case MATRIX -> FLOAT;
             case STRING -> DataType.STRING;
-            case TUPLE -> ANY;
-            case ANY -> ANY;
+            case TUPLE, ANY -> ANY;
             default -> UNKNOWN;
         };
     }

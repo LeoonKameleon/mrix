@@ -1,7 +1,6 @@
 package mrix.ast;
 
 import mrix.interpreter.value.Value;
-import mrix.scanner.token.Token;
 import mrix.typing.type.DataType;
 
 public class IterNode extends AbstractNode {
