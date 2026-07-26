@@ -576,7 +576,7 @@ public class StandardLibrary {
             if (args.size() != 1) throw new StandardLibraryException("hash() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() != MATRIX && arg.getType() != HMAP) {
-                return Value.of(args.get(0).hashCode());
+                return Value.of(args.getFirst().hashCode());
             }
             throw new StandardLibraryException("hash() does not support " + arg.getType() + " type");
         });

@@ -816,7 +816,7 @@ public class Interpreter implements InterpreterVisitor {
         for (Node element : node.getElements()) {
             values.add(element.accept(this));
         }
-        return new Value(new TupleValue(values), DataType.TUPLE);
+        return Value.of(new TupleValue(values));
     }
 
     @Override
@@ -839,7 +839,7 @@ public class Interpreter implements InterpreterVisitor {
             }
             map.put(key, values.get(i).accept(this));
         }
-        return new Value(map, HMAP);
+        return Value.of(map);
     }
 
     public void finish() {
