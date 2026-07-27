@@ -1,6 +1,7 @@
 package mrix.parser;
 
 import mrix.ast.*;
+import mrix.exception.MrixSyntaxException;
 import mrix.scanner.token.Token;
 import mrix.scanner.token.TokenType;
 
@@ -18,6 +19,7 @@ public class Parser {
         this.tokens = tokens;
         this.size = tokens.size();
     }
+
     public Node parseProgram() {
         Node result = parseInstructionsOpt();
         expect(EOF);
@@ -192,7 +194,7 @@ public class Parser {
         return switch (op.getTokenType()) {
             case ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN ->
                     new AssignNode(left, op, right, op.getLine());
-            default -> throw new RuntimeException("Expected assignment operator");
+            default -> throw new MrixSyntaxException("Expected assignment operator", op.getLine());
         };
     }
 
@@ -323,7 +325,7 @@ public class Parser {
             return parseVariable();
         }
         if (check(HMAP)) return parseHMap();
-        throw new RuntimeException("Line " + tokens.get(position).getLine() + " Parse error: Unexpected token: " + tokens.get(position).getTokenType());
+        throw new MrixSyntaxException("Parse error: Unexpected token: " + tokens.get(position).getTokenType(), tokens.get(position).getLine());
     }
 
     private Node parseHMap() {
@@ -401,7 +403,7 @@ public class Parser {
     private Token expect(TokenType type) {
         Token token = tokens.get(position++);
         if (token.getTokenType() != type) {
-            throw new RuntimeException("Line " + token.getLine() + ": Expected " + type + ", but got " + token.getTokenType());
+            throw new MrixSyntaxException("Expected " + type + ", but got " + token.getTokenType(), token.getLine());
         }
         return token;
     }
@@ -412,13 +414,13 @@ public class Parser {
     }
 
     private Token consume() {
-        if (position >= size) return tokens.get(size-1);
+        if (position >= size) return tokens.get(size - 1);
         return tokens.get(position++);
     }
 
     private Token peek(int steps) {
         int index = position + steps;
-        if (index >= size) return tokens.get(size-1);
+        if (index >= size) return tokens.get(size - 1);
         return tokens.get(index);
     }
 

@@ -7,11 +7,13 @@ import mrix.typing.type.DataType;
 public class PostfixNode extends AbstractNode {
     private final Node primary;
     private final Token op;
+
     public PostfixNode(Node primary, Token op, int line) {
         super(line);
         this.primary = primary;
         this.op = op;
     }
+
     public DataType accept(NodeVisitor visitor) {
         return visitor.visitPostfixNode(this);
     }

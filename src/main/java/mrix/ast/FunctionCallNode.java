@@ -6,14 +6,16 @@ import mrix.typing.type.DataType;
 
 import java.util.List;
 
-public class FunctionCallNode extends AbstractNode{
+public class FunctionCallNode extends AbstractNode {
     private final Token id;
     private final List<Node> expressionList;
+
     public FunctionCallNode(Token id, List<Node> expressionList, int line) {
         super(line);
         this.id = id;
         this.expressionList = expressionList;
     }
+
     public DataType accept(NodeVisitor visitor) {
         return visitor.visitFunctionCallNode(this);
     }

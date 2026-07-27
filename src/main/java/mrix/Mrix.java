@@ -1,6 +1,8 @@
 package mrix;
 
 import mrix.ast.Node;
+import mrix.exception.MrixRuntimeException;
+import mrix.exception.MrixSyntaxException;
 import mrix.interpreter.Interpreter;
 import mrix.parser.Parser;
 import mrix.scanner.Scanner;
@@ -33,6 +35,7 @@ public class Mrix {
             System.out.println("Invalid file extension");
         }
     }
+
     private static void runFile(String filename) throws IOException {
         Path path = Paths.get(filename);
         Path fileDir = path.toAbsolutePath().getParent();
@@ -42,27 +45,48 @@ public class Mrix {
             System.exit(1);
         }
     }
+
     private static void run(String content, Path fileDir) {
         Scanner scanner = new Scanner(content);
         List<Token> tokens = scanner.tokenize();
-        
-        Parser parser = new Parser(tokens);
-        Node ast = parser.parseProgram();
+
+        Node ast;
+        try {
+            Parser parser = new Parser(tokens);
+            ast = parser.parseProgram();
+        } catch (MrixSyntaxException e) {
+            System.err.println("Syntax error");
+            System.err.println("------------");
+            System.err.println(e.getMessage());
+            System.exit(1);
+            return;
+        }
 
         TypeChecker typeChecker = new TypeChecker(fileDir);
         ast.accept(typeChecker);
         List<String> errors = typeChecker.getErrors();
         if (!errors.isEmpty()) {
+            System.err.println("Type-checker errors");
+            System.err.println("-------------------");
             for (String error : errors) {
-                System.out.println(error);
+                System.err.println(error);
             }
             System.exit(1);
         }
 
         Interpreter interpreter = new Interpreter(fileDir);
-        ast.accept(interpreter);
-        interpreter.finish();
+        try {
+            ast.accept(interpreter);
+            interpreter.finish();
+        } catch (MrixRuntimeException e) {
+            interpreter.finish();
+            System.err.println("Runtime error");
+            System.err.println("-------------");
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
     }
+
     public static void error(int line, String message) {
         System.out.println("Line " + line + " error: " + message);
     }

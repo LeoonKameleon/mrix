@@ -11,6 +11,7 @@ public class ImportNode extends AbstractNode {
         super(line);
         this.path = path;
     }
+
     public DataType accept(NodeVisitor visitor) {
         return visitor.visitImportNode(this);
     }

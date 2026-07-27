@@ -12,6 +12,7 @@ public class PrimaryNode extends AbstractNode {
         super(line);
         this.value = value;
     }
+
     public DataType accept(NodeVisitor visitor) {
         return visitor.visitPrimaryNode(this);
     }

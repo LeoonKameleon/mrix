@@ -7,7 +7,7 @@ import java.util.List;
 
 public class TupleNode extends AbstractNode {
     private final List<Node> elements;
-    
+
     public TupleNode(List<Node> elements, int line) {
         super(line);
         this.elements = elements;

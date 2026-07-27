@@ -46,7 +46,7 @@ public class TypeChecker implements NodeVisitor {
         if (symbol == null) {
             errors.add("Line " + node.getId().getLine() + ": Undefined variable '" + node.getId().getLexeme() + "'");
             return UNKNOWN;
-        } 
+        }
         DataType type = symbol.getType();
         List<Node> indices = node.getExpressionList();
 
@@ -65,7 +65,7 @@ public class TypeChecker implements NodeVisitor {
             if (indices.size() > 1) {
                 errors.add("Line " + node.getLine() + ": Tuples support only 1D indexing");
             }
-            return ANY; 
+            return ANY;
         }
 
         if (type == HMAP) {
@@ -76,7 +76,7 @@ public class TypeChecker implements NodeVisitor {
         }
 
         if (type == MATRIX) {
-            return FLOAT; 
+            return FLOAT;
         }
 
         if (type == ANY) {
@@ -102,7 +102,7 @@ public class TypeChecker implements NodeVisitor {
             if (node.getExpression() instanceof TupleNode tupleNode) {
                 List<Node> elements = tupleNode.getElements();
                 if (ids.size() != elements.size()) {
-                    errors.add("Line " + node.getLine() + ": Tuple size mismatch. Expected " + 
+                    errors.add("Line " + node.getLine() + ": Tuple size mismatch. Expected " +
                             elements.size() + ", got " + ids.size());
                 }
                 for (int i = 0; i < Math.min(ids.size(), elements.size()); i++) {
@@ -123,9 +123,7 @@ public class TypeChecker implements NodeVisitor {
 
             if (indices == null || indices.isEmpty()) {
                 table.put(name, new VariableSymbol(name, rightSideType));
-            }
-            
-            else {
+            } else {
                 VariableSymbol symbol = table.get(name);
                 if (symbol == null) {
                     errors.add("Line " + node.getLine() + ": Undefined variable '" + name + "'");
@@ -175,7 +173,7 @@ public class TypeChecker implements NodeVisitor {
         }
         switch (opType) {
             case AND:
-            case OR: 
+            case OR:
                 if (leftType == BOOL && rightType == BOOL) return BOOL;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + op.getTokenType() + "': " + leftType + " and " + rightType);
                 return UNKNOWN;
@@ -187,7 +185,7 @@ public class TypeChecker implements NodeVisitor {
             case LESS_EQ:
                 if (leftType == rightType) return BOOL;
                 if ((leftType == INT && rightType == FLOAT) ||
-                    (leftType == FLOAT && rightType == INT)) return BOOL;
+                        (leftType == FLOAT && rightType == INT)) return BOOL;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + op.getTokenType() + "': " + leftType + " and " + rightType);
                 return UNKNOWN;
             case ADD:
@@ -196,7 +194,7 @@ public class TypeChecker implements NodeVisitor {
                     if (leftType != BOOL) return leftType;
                 }
                 if ((leftType == INT && rightType == FLOAT) ||
-                    (leftType == FLOAT && rightType == INT)) return FLOAT;
+                        (leftType == FLOAT && rightType == INT)) return FLOAT;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + op.getTokenType() + "': " + leftType + " and " + rightType);
                 return UNKNOWN;
             case DIV:
@@ -206,7 +204,7 @@ public class TypeChecker implements NodeVisitor {
                     if (leftType == MATRIX) return MATRIX;
                 }
                 if ((leftType == INT && rightType == FLOAT) ||
-                    (leftType == FLOAT && rightType == INT)) return FLOAT;
+                        (leftType == FLOAT && rightType == INT)) return FLOAT;
                 if (leftType == MATRIX && (rightType == INT || rightType == FLOAT)) return MATRIX;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + DIV + "': " + leftType + " and " + rightType);
                 return UNKNOWN;
@@ -217,11 +215,11 @@ public class TypeChecker implements NodeVisitor {
                     if (leftType == MATRIX) return MATRIX;
                 }
                 if ((leftType == INT && rightType == FLOAT) ||
-                    (leftType == FLOAT && rightType == INT)) return FLOAT;
+                        (leftType == FLOAT && rightType == INT)) return FLOAT;
                 if (((leftType == INT || leftType == FLOAT) && rightType == MATRIX) ||
-                    (leftType == MATRIX && (rightType == INT || rightType == FLOAT))) return MATRIX;
+                        (leftType == MATRIX && (rightType == INT || rightType == FLOAT))) return MATRIX;
                 if ((leftType == INT && rightType == DataType.STRING) ||
-                    (leftType == DataType.STRING && rightType == INT)) return DataType.STRING;
+                        (leftType == DataType.STRING && rightType == INT)) return DataType.STRING;
                 errors.add("Line " + op.getLine() + ": Type mismatch for operator '" + MUL + "': " + leftType + " and " + rightType);
                 return UNKNOWN;
             case MOD:
@@ -522,7 +520,7 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public DataType visitTuplePatternNode(TuplePatternNode node) {
-        return UNKNOWN; 
+        return UNKNOWN;
     }
 
     @Override

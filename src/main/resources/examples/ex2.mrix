@@ -17,3 +17,7 @@ b = hmap{1: 5};
 c = hmap{1: 5};
 
 print b == c;
+
+print len(b);
+
+print keys(1);

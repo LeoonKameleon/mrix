@@ -7,10 +7,12 @@ import java.util.List;
 
 public class PrintNode extends AbstractNode {
     private final List<Node> expressionList;
+
     public PrintNode(List<Node> expressionList, int line) {
         super(line);
         this.expressionList = expressionList;
     }
+
     public DataType accept(NodeVisitor visitor) {
         return visitor.visitPrintNode(this);
     }

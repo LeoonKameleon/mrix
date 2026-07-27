@@ -1,3 +1,4 @@
 package mrix.interpreter.flow;
 
-public class BreakException extends RuntimeException {}
+public class BreakException extends RuntimeException {
+}

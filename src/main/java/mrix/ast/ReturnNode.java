@@ -5,10 +5,12 @@ import mrix.typing.type.DataType;
 
 public class ReturnNode extends AbstractNode {
     private final Node expression;
+
     public ReturnNode(Node expression, int line) {
         super(line);
         this.expression = expression;
     }
+
     public DataType accept(NodeVisitor visitor) {
         return visitor.visitReturnNode(this);
     }

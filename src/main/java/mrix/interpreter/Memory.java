@@ -7,6 +7,7 @@ import java.util.HashMap;
 public class Memory {
     private final Memory parent;
     private final HashMap<String, Value> memory;
+
     public Memory(Memory parent) {
         this.parent = parent;
         memory = new HashMap<String, Value>();

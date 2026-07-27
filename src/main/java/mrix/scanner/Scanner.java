@@ -18,6 +18,7 @@ public class Scanner {
     private int position = 0;
     private int line = 1;
     private static final Map<String, TokenType> keywords = new HashMap<>();
+
     static {
         keywords.put("if", IF);
         keywords.put("else", ELSE);
@@ -55,35 +56,75 @@ public class Scanner {
         tokens.add(new Token(EOF, "", null, line));
         return tokens;
     }
+
     private void nextToken() {
         char c = source.charAt(position++);
         switch (c) {
-            case '\n': line++; break;
-            case '(': addToken(LEFT_PAREN); break;
-            case ')': addToken(RIGHT_PAREN); break;
-            case '{': addToken(LEFT_BRACE); break;
-            case '}': addToken(RIGHT_BRACE); break;
-            case '[': addToken(LEFT_BRACK); break;
-            case ']': addToken(RIGHT_BRACK); break;
-            case ':': addToken(COLON); break;
-            case ';': addToken(SEMICOLON); break;
-            case ',': addToken(COMMA); break;
-            case '\'': addToken(TRANSPOSE); break;
-            case '=': addToken(check('=') ? EQ : ASSIGN); break;
-            case '+': addToken(check('=') ? ADD_ASSIGN : ADD); break;
-            case '-': addToken(check('=') ? SUB_ASSIGN : SUB); break;
-            case '*': addToken(check('=') ? MUL_ASSIGN : MUL); break;
-            case '%': addToken(check('=') ? MOD_ASSIGN : MOD); break;
-            case '>': addToken(check('=') ? GREATER_EQ : GREATER); break;
-            case '<': addToken(check('=') ? LESS_EQ : LESS); break;
-            case '!': addToken(check('=') ? NOT_EQ : NOT); break;
+            case '\n':
+                line++;
+                break;
+            case '(':
+                addToken(LEFT_PAREN);
+                break;
+            case ')':
+                addToken(RIGHT_PAREN);
+                break;
+            case '{':
+                addToken(LEFT_BRACE);
+                break;
+            case '}':
+                addToken(RIGHT_BRACE);
+                break;
+            case '[':
+                addToken(LEFT_BRACK);
+                break;
+            case ']':
+                addToken(RIGHT_BRACK);
+                break;
+            case ':':
+                addToken(COLON);
+                break;
+            case ';':
+                addToken(SEMICOLON);
+                break;
+            case ',':
+                addToken(COMMA);
+                break;
+            case '\'':
+                addToken(TRANSPOSE);
+                break;
+            case '=':
+                addToken(check('=') ? EQ : ASSIGN);
+                break;
+            case '+':
+                addToken(check('=') ? ADD_ASSIGN : ADD);
+                break;
+            case '-':
+                addToken(check('=') ? SUB_ASSIGN : SUB);
+                break;
+            case '*':
+                addToken(check('=') ? MUL_ASSIGN : MUL);
+                break;
+            case '%':
+                addToken(check('=') ? MOD_ASSIGN : MOD);
+                break;
+            case '>':
+                addToken(check('=') ? GREATER_EQ : GREATER);
+                break;
+            case '<':
+                addToken(check('=') ? LESS_EQ : LESS);
+                break;
+            case '!':
+                addToken(check('=') ? NOT_EQ : NOT);
+                break;
             case '/':
                 if (check('/')) {
                     while (peek() != '\n' && !(position >= source.length())) {
                         position++;
                     }
-                } else addToken(check('=') ? DIV_ASSIGN : DIV); break;
-            case '.': 
+                } else addToken(check('=') ? DIV_ASSIGN : DIV);
+                break;
+            case '.':
                 if (check('+')) {
                     addToken(DOT_ADD);
                     break;
@@ -100,10 +141,13 @@ public class Scanner {
                     addToken(DOT_DIV);
                     break;
                 }
-            case '"': addStringToken(); break;
+            case '"':
+                addStringToken();
+                break;
             case ' ':
             case '\r':
-            case '\t': break;
+            case '\t':
+                break;
             default:
                 if (isDigit(c)) {
                     addNumberToken();
@@ -112,7 +156,8 @@ public class Scanner {
                     addIdToken();
                     break;
                 }
-                Mrix.error(line, "Unexpected character: " + c); break;
+                Mrix.error(line, "Unexpected character: " + c);
+                break;
         }
     }
 
@@ -156,7 +201,7 @@ public class Scanner {
             Mrix.error(line, "Unexpected end of string");
         }
         position++;
-        String raw = source.substring(start+1, position-1);
+        String raw = source.substring(start + 1, position - 1);
         addToken(STRING, raw.translateEscapes());
     }
 

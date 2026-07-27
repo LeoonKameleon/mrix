@@ -79,7 +79,7 @@ public class Interpreter implements InterpreterVisitor {
                 HMapValue hmap = value.toHMap();
                 Value key = variable.getExpressionList().getFirst().accept(this);
                 if (!hmap.containsKey(key)) {
-                    throw new MrixRuntimeException("Key not found in hmap", variable.getLine());
+                    throw new MrixRuntimeException("Key '" + key + "' not found in hmap", variable.getLine());
                 }
                 return hmap.get(key);
             }
@@ -139,7 +139,14 @@ public class Interpreter implements InterpreterVisitor {
                 if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
                     return new Value(left.toString() + right, DataType.STRING);
                 }
-                return new Value(left.toDouble() + right.toDouble(), FLOAT);
+                if ((left.getType() == INT || left.getType() == FLOAT) &&
+                        (right.getType() == INT || right.getType() == FLOAT)) {
+                    return new Value(left.toDouble() + right.toDouble(), FLOAT);
+                }
+                throw new MrixRuntimeException(
+                        "Invalid operand types for '+': " + left.getType() + " and " + right.getType(),
+                        op.getLine()
+                );
             case SUB:
                 if (left.getType() == INT && right.getType() == INT) {
                     return Value.of(left.toLong() - right.toLong());
@@ -150,7 +157,14 @@ public class Interpreter implements InterpreterVisitor {
                 if (left.getType() == DataType.STRING && right.getType() == DataType.STRING) {
                     return new Value(left.toString().replaceFirst(right.toString(), ""), DataType.STRING);
                 }
-                return new Value(left.toDouble() - right.toDouble(), FLOAT);
+                if ((left.getType() == INT || left.getType() == FLOAT) &&
+                        (right.getType() == INT || right.getType() == FLOAT)) {
+                    return new Value(left.toDouble() - right.toDouble(), FLOAT);
+                }
+                throw new MrixRuntimeException(
+                        "Invalid operand types for '-': " + left.getType() + " and " + right.getType(),
+                        op.getLine()
+                );
             case DIV:
                 if (left.getType() == MATRIX && (right.getType() == INT || right.getType() == FLOAT)) {
                     double[][] matrix = left.toMatrix();
@@ -176,7 +190,14 @@ public class Interpreter implements InterpreterVisitor {
                 if (right.toDouble() == 0) {
                     throw new MrixRuntimeException("Zero division", op.getLine());
                 }
-                return new Value(left.toDouble() / right.toDouble(), FLOAT);
+                if ((left.getType() == INT || left.getType() == FLOAT) &&
+                        (right.getType() == INT || right.getType() == FLOAT)) {
+                    return new Value(left.toDouble() / right.toDouble(), FLOAT);
+                }
+                throw new MrixRuntimeException(
+                        "Invalid operand types for '/': " + left.getType() + " and " + right.getType(),
+                        op.getLine()
+                );
             case MUL:
                 if (left.getType() == INT && right.getType() == INT) {
                     return Value.of(left.toLong() * right.toLong());
@@ -227,7 +248,14 @@ public class Interpreter implements InterpreterVisitor {
                         throw new MrixRuntimeException("Matrix multiplication size mismatch", op.getLine());
                     }
                 }
-                return new Value(left.toDouble() * right.toDouble(), FLOAT);
+                if ((left.getType() == INT || left.getType() == FLOAT) &&
+                        (right.getType() == INT || right.getType() == FLOAT)) {
+                    return new Value(left.toDouble() * right.toDouble(), FLOAT);
+                }
+                throw new MrixRuntimeException(
+                        "Invalid operand types for '*': " + left.getType() + " and " + right.getType(),
+                        op.getLine()
+                );
             case MOD:
                 if (left.getType() == INT && right.getType() == INT) {
                     if (right.toLong() == 0) {

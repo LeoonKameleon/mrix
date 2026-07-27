@@ -2,7 +2,9 @@ package mrix.interpreter.value;
 
 import mrix.typing.type.DataType;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HMapValue {
@@ -36,6 +38,10 @@ public class HMapValue {
         map.remove(key);
     }
 
+    public List<Value> getKeys() {
+        return new ArrayList<Value>(map.keySet());
+    }
+
     public Map<Value, Value> getMap() {
         return map;
     }
@@ -57,11 +63,6 @@ public class HMapValue {
         }
         sb.append("}");
         return sb.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return map.hashCode();
     }
 
     @Override

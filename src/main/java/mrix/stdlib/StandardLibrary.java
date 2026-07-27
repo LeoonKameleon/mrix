@@ -1,6 +1,7 @@
 package mrix.stdlib;
 
 import mrix.exception.StandardLibraryException;
+import mrix.interpreter.value.HMapValue;
 import mrix.interpreter.value.TupleValue;
 import mrix.interpreter.value.Value;
 import mrix.typing.type.DataType;
@@ -25,14 +26,15 @@ public class StandardLibrary {
     public StandardLibrary(Path fileDir) {
         this.fileDir = fileDir;
         functions.put("sqrt", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("sqrt() expects 1 argument, but got " + args.size());
-            Value value = args.getFirst(); 
+            if (args.size() != 1)
+                throw new StandardLibraryException("sqrt() expects 1 argument, but got " + args.size());
+            Value value = args.getFirst();
             if (value.getType() == MATRIX) {
                 double[][] matrix = value.toMatrix();
                 int rows = matrix.length, cols = matrix[0].length;
                 double[][] result = new double[rows][cols];
-                for (int i=0; i<rows; i++)
-                    for (int j=0; j<cols; j++)
+                for (int i = 0; i < rows; i++)
+                    for (int j = 0; j < cols; j++)
                         result[i][j] = Math.sqrt(matrix[i][j]);
                 return new Value(result, MATRIX);
             }
@@ -44,7 +46,8 @@ public class StandardLibrary {
             return new Value(result, FLOAT);
         });
         functions.put("sin", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("sin() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("sin() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == FLOAT || arg.getType() == INT) {
                 return new Value(Math.sin(arg.toDouble()), FLOAT);
@@ -52,7 +55,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("sin() does not support " + arg.getType() + " type");
         });
         functions.put("cos", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("cos() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("cos() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == FLOAT || arg.getType() == INT) {
                 return new Value(Math.cos(arg.toDouble()), FLOAT);
@@ -60,21 +64,24 @@ public class StandardLibrary {
             throw new StandardLibraryException("cos() does not support " + arg.getType() + " type");
         });
         functions.put("tan", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("tan() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("tan() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
-            if ( arg.getType() == FLOAT || arg.getType() == INT) {
+            if (arg.getType() == FLOAT || arg.getType() == INT) {
                 return new Value(Math.tan(arg.toDouble()), FLOAT);
             }
             throw new StandardLibraryException("tan() does not support " + arg.getType() + " type");
         });
         functions.put("round", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("round() expects 2 arguments, but got " + args.size());
+            if (args.size() != 2)
+                throw new StandardLibraryException("round() expects 2 arguments, but got " + args.size());
             Value arg = args.getFirst();
             Value n = args.get(1);
-            if (n.getType() != INT) throw new StandardLibraryException("round() expects INT as second argument, but got" + n.getType());
+            if (n.getType() != INT)
+                throw new StandardLibraryException("round() expects INT as second argument, but got" + n.getType());
             if (arg.getType() == FLOAT) {
                 double m = Math.pow(10, n.toLong());
-                return new Value(Math.round(arg.toDouble()*m)/m, FLOAT);
+                return new Value(Math.round(arg.toDouble() * m) / m, FLOAT);
             }
             if (arg.getType() == INT) {
                 return arg;
@@ -82,7 +89,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("round() does not support " + arg.getType() + " type");
         });
         functions.put("floor", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("floor() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("floor() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == FLOAT) {
                 return new Value(Math.floor(arg.toDouble()), FLOAT);
@@ -92,8 +100,9 @@ public class StandardLibrary {
             }
             throw new StandardLibraryException("floor() does not support " + arg.getType() + " type");
         });
-        functions.put("ceil", args ->{
-            if (args.size() != 1) throw new StandardLibraryException("ceil() expects 1 argument, but got " + args.size());
+        functions.put("ceil", args -> {
+            if (args.size() != 1)
+                throw new StandardLibraryException("ceil() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == FLOAT) {
                 return new Value(Math.ceil(arg.toDouble()), FLOAT);
@@ -104,11 +113,12 @@ public class StandardLibrary {
             throw new StandardLibraryException("ceil() does not support " + arg.getType() + " type");
         });
         functions.put("log", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("log() expects 2 arguments, but got " + args.size());
+            if (args.size() != 2)
+                throw new StandardLibraryException("log() expects 2 arguments, but got " + args.size());
             Value arg = args.getFirst();
             Value base = args.get(1);
             if ((arg.getType() == FLOAT || arg.getType() == INT) && (base.getType() == FLOAT || base.getType() == INT)) {
-                return new Value(Math.log(arg.toDouble())/Math.log(base.toDouble()), FLOAT);
+                return new Value(Math.log(arg.toDouble()) / Math.log(base.toDouble()), FLOAT);
             }
             throw new StandardLibraryException("log() does not support " + arg.getType() + " and " + base.getType() + " types");
         });
@@ -121,7 +131,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("ln() does not support " + arg.getType() + " type");
         });
         functions.put("abs", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("abs() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("abs() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == INT) {
                 return Value.of(Math.abs(args.getFirst().toLong()));
@@ -133,28 +144,30 @@ public class StandardLibrary {
                 double[][] matrix = arg.toMatrix();
                 int rows = matrix.length, cols = matrix[0].length;
                 double[][] result = new double[rows][cols];
-                for (int i=0; i<rows; i++)
-                    for (int j=0; j<cols; j++)
+                for (int i = 0; i < rows; i++)
+                    for (int j = 0; j < cols; j++)
                         result[i][j] = Math.abs(matrix[i][j]);
                 return new Value(result, MATRIX);
             }
             throw new StandardLibraryException("abs() does not support " + arg.getType() + " type");
         });
         functions.put("inv", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("inv() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("inv() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == MATRIX) {
                 double[][] matrix = arg.toMatrix();
-                if (matrix.length != matrix[0].length) throw new StandardLibraryException("inv() expects a square matrix, but got size " + matrix.length + ", " + matrix[0].length);
+                if (matrix.length != matrix[0].length)
+                    throw new StandardLibraryException("inv() expects a square matrix, but got size " + matrix.length + ", " + matrix[0].length);
                 int n = matrix.length;
-                double[][] extended = new double[n][2*n];
-                for (int i=0; i<n; i++) {
+                double[][] extended = new double[n][2 * n];
+                for (int i = 0; i < n; i++) {
                     System.arraycopy(matrix[i], 0, extended[i], 0, n);
-                    extended[i][i+n] = 1;
+                    extended[i][i + n] = 1;
                 }
-                for (int col=0; col<n; col++) {
+                for (int col = 0; col < n; col++) {
                     int pivot = -1;
-                    for (int row=col; row<n; row++) {
+                    for (int row = col; row < n; row++) {
                         if (Math.abs(extended[row][col]) > 1e-12) {
                             pivot = row;
                             break;
@@ -166,17 +179,17 @@ public class StandardLibrary {
                     extended[pivot] = tmp;
 
                     double div = extended[col][col];
-                    for (int j=0; j<2*n; j++) extended[col][j] /= div;
+                    for (int j = 0; j < 2 * n; j++) extended[col][j] /= div;
 
-                    for (int row=0; row<n; row++) {
+                    for (int row = 0; row < n; row++) {
                         if (row == col) continue;
                         double factor = extended[row][col];
-                        for (int j=0; j<2*n; j++) extended[row][j] -= factor * extended[col][j];
+                        for (int j = 0; j < 2 * n; j++) extended[row][j] -= factor * extended[col][j];
                     }
                 }
 
                 double[][] result = new double[n][n];
-                for (int i=0; i<n; i++)
+                for (int i = 0; i < n; i++)
                     System.arraycopy(extended[i], n, result[i], 0, n);
 
                 return new Value(result, MATRIX);
@@ -184,7 +197,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("inv() does not support " + arg.getType() + " type");
         });
         functions.put("size", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("size() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("size() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == MATRIX) {
                 double[][] matrix = arg.toMatrix();
@@ -196,7 +210,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("size() does not support " + arg.getType() + " type");
         });
         functions.put("rows", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("rows() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("rows() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == MATRIX) {
                 return Value.of(arg.toMatrix().length);
@@ -204,7 +219,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("rows() does not support " + arg.getType() + " type");
         });
         functions.put("cols", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("cols() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("cols() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == MATRIX) {
                 return Value.of(arg.toMatrix()[0].length);
@@ -283,18 +299,19 @@ public class StandardLibrary {
                         for (double val : row) {
                             sum += val;
                             count++;
-                        } 
+                        }
                 } else {
                     sum += arg.toDouble();
                     count++;
                 }
             }
-            double result = sum/count;
+            double result = sum / count;
             if (result == (long) result) return Value.of((long) result);
             return new Value(result, FLOAT);
         });
         functions.put("type", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("type() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("type() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             return new Value(arg.getType().name(), STRING);
         });
@@ -302,21 +319,22 @@ public class StandardLibrary {
             if (args.size() != 2) throw new StandardLibraryException("pow() expects 2 arguments");
             Value baseVal = args.getFirst();
             Value expVal = args.get(1);
-            
+
             DataType baseType = baseVal.getType();
             DataType expType = expVal.getType();
-            
+
             if (baseType == STRING || baseType == MATRIX || baseType == FUNCTION ||
-                expType == STRING || expType == MATRIX || expType == FUNCTION) {
+                    expType == STRING || expType == MATRIX || expType == FUNCTION) {
                 throw new StandardLibraryException("pow() does not support " + baseType + " and " + expType);
             }
-            
+
             double result = Math.pow(baseVal.toDouble(), expVal.toDouble());
             if (result == (long) result) return Value.of((long) result);
             return new Value(result, FLOAT);
         });
         functions.put("exp", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("exp() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("exp() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == INT || arg.getType() == FLOAT) {
                 return new Value(Math.exp(arg.toDouble()), FLOAT);
@@ -324,11 +342,15 @@ public class StandardLibrary {
             throw new StandardLibraryException("exp() does not support " + arg.getType() + " type");
         });
         functions.put("len", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("len() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("len() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == MATRIX) {
                 double[][] m = arg.toMatrix();
                 return Value.of((long) m.length * m[0].length);
+            }
+            if (arg.getType() == HMAP) {
+                return Value.of(arg.toHMap().size());
             }
             if (arg.getType() == TUPLE) {
                 return Value.of(arg.toTuple().getValues().size());
@@ -339,7 +361,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("len() does not support " + arg.getType() + " type");
         });
         functions.put("at", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("at() expects 2 arguments, but got " + args.size());
+            if (args.size() != 2)
+                throw new StandardLibraryException("at() expects 2 arguments, but got " + args.size());
             Value string = args.getFirst();
             Value index = args.get(1);
             if (string.getType() == STRING && index.getType() == INT) {
@@ -352,7 +375,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("at() does not support " + string.getType() + " and " + index.getType());
         });
         functions.put("contains", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("contains() expects 2 arguments, but got " + args.size());
+            if (args.size() != 2)
+                throw new StandardLibraryException("contains() expects 2 arguments, but got " + args.size());
             Value array = args.getFirst();
             Value element = args.get(1);
             if (array.getType() == STRING && element.getType() == STRING) {
@@ -369,19 +393,47 @@ public class StandardLibrary {
             }
             if (array.getType() == TUPLE) {
                 TupleValue tuple = array.toTuple();
-                boolean found = tuple.getValues().contains(element); 
+                boolean found = tuple.getValues().contains(element);
                 return Value.of(found);
             }
             throw new StandardLibraryException("contains() does not support " + array.getType() + " and " + element.getType());
         });
+        functions.put("remove", args -> {
+            if (args.size() != 2)
+                throw new StandardLibraryException("remove() expects 2 arguments, but got " + args.size());
+            Value arg = args.getFirst();
+            Value element = args.get(1);
+            if (arg.getType() == HMAP) {
+                HMapValue hmap = arg.toHMap();
+                if (hmap.containsKey(element)) {
+                    hmap.remove(element);
+                    return Value.of(true);
+                } else {
+                    throw new StandardLibraryException("remove(" + element + ") element not found in HMAP");
+                }
+            }
+            throw new StandardLibraryException("remove() does not support " + arg.getType() + " type");
+        });
+        functions.put("keys", args -> {
+            if (args.size() != 1)
+                throw new StandardLibraryException("keys() expects 1 argument, but got " + args.size());
+            Value arg = args.getFirst();
+            if (arg.getType() == HMAP) {
+                HMapValue hmap = arg.toHMap();
+                List<Value> keys = hmap.getKeys();
+                return Value.of(new TupleValue(keys));
+            }
+            throw new StandardLibraryException("keys() does not support " + arg.getType() + " type");
+        });
         functions.put("int", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("int() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("int() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == STRING) {
                 try {
                     return Value.of(Long.parseLong(arg.toString()));
                 } catch (NumberFormatException e) {
-                    throw new StandardLibraryException("int() is unable to convert STRING to INT"); 
+                    throw new StandardLibraryException("int() is unable to convert STRING to INT");
                 }
             }
             if (arg.getType() == FLOAT) {
@@ -396,13 +448,14 @@ public class StandardLibrary {
             throw new StandardLibraryException("int() does not support " + arg.getType() + " type");
         });
         functions.put("float", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("float() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("float() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == STRING) {
                 try {
                     return new Value(Double.parseDouble(arg.toString()), FLOAT);
                 } catch (NumberFormatException e) {
-                    throw new StandardLibraryException("float() is unable to convert STRING to FLOAT"); 
+                    throw new StandardLibraryException("float() is unable to convert STRING to FLOAT");
                 }
             }
             if (arg.getType() == INT) {
@@ -417,7 +470,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("float() does not support " + arg.getType() + " type");
         });
         functions.put("str", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("str() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("str() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == INT) {
                 return new Value(String.valueOf(arg.toLong()), STRING);
@@ -437,7 +491,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("str() does not support " + arg.getType() + " type");
         });
         functions.put("bool", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("bool() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("bool() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == INT) {
                 return new Value(arg.toLong() != 0, BOOL);
@@ -451,7 +506,8 @@ public class StandardLibrary {
             throw new StandardLibraryException("bool() does not support " + arg.getType() + " type");
         });
         functions.put("tuple", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("tuple() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("tuple() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == MATRIX) {
                 double[][] matrix = arg.toMatrix();
@@ -480,8 +536,10 @@ public class StandardLibrary {
             return Value.of(new TupleValue(List.of(arg)));
         });
         functions.put("matrix", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("matrix() expects 1 argument, but got " + args.size());
-            if (args.getFirst().getType() != TUPLE) throw new StandardLibraryException("matrix() expects TUPLE, but got " + args.getFirst().getType());
+            if (args.size() != 1)
+                throw new StandardLibraryException("matrix() expects 1 argument, but got " + args.size());
+            if (args.getFirst().getType() != TUPLE)
+                throw new StandardLibraryException("matrix() expects TUPLE, but got " + args.getFirst().getType());
 
             TupleValue t = args.getFirst().toTuple();
             int rows = t.size();
@@ -525,7 +583,8 @@ public class StandardLibrary {
             return Value.of(new TupleValue(range));
         });
         functions.put("reverse", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("reverse() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("reverse() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() == STRING) {
                 return new Value(new StringBuilder(arg.toString()).reverse().toString(), STRING);
@@ -537,24 +596,29 @@ public class StandardLibrary {
             throw new StandardLibraryException("reverse() does not support " + arg.getType() + " type");
         });
         functions.put("rand", args -> {
-            if (!args.isEmpty()) throw new StandardLibraryException("rand() expects 0 arguments, but got " + args.size());
+            if (!args.isEmpty())
+                throw new StandardLibraryException("rand() expects 0 arguments, but got " + args.size());
             return new Value(rng.nextDouble(), FLOAT);
         });
         functions.put("randint", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("randint() expects 2 arguments, but got " + args.size());
+            if (args.size() != 2)
+                throw new StandardLibraryException("randint() expects 2 arguments, but got " + args.size());
             Value min = args.get(0);
             Value max = args.get(1);
-            if (min.getType() != INT || max.getType() != INT) throw new StandardLibraryException("randint() expects INT arguments");
+            if (min.getType() != INT || max.getType() != INT)
+                throw new StandardLibraryException("randint() expects INT arguments");
             long minVal = min.toLong();
             long maxVal = max.toLong();
             if (minVal > maxVal) throw new StandardLibraryException("randint() min cannot be greater than max");
             return Value.of(rng.nextLong((maxVal - minVal + 1)) + minVal);
         });
         functions.put("randmat", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("randmat() expects 2 arguments, but got " + args.size());
+            if (args.size() != 2)
+                throw new StandardLibraryException("randmat() expects 2 arguments, but got " + args.size());
             Value rows = args.get(0);
             Value cols = args.get(1);
-            if (rows.getType() != INT || cols.getType() != INT) throw new StandardLibraryException("randmat() expects INT arguments");
+            if (rows.getType() != INT || cols.getType() != INT)
+                throw new StandardLibraryException("randmat() expects INT arguments");
             int rowsVal = rows.toInt();
             int colsVal = cols.toInt();
             double[][] matrix = new double[rowsVal][colsVal];
@@ -566,14 +630,16 @@ public class StandardLibrary {
             return new Value(matrix, MATRIX);
         });
         functions.put("seed", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("seed() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("seed() expects 1 argument, but got " + args.size());
             Value seed = args.getFirst();
             if (seed.getType() != INT) throw new StandardLibraryException("seed() expects INT argument");
             rng.setSeed(seed.toLong());
             return Value.NONE;
         });
         functions.put("hash", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("hash() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("hash() expects 1 argument, but got " + args.size());
             Value arg = args.getFirst();
             if (arg.getType() != MATRIX && arg.getType() != HMAP) {
                 return Value.of(args.getFirst().hashCode());
@@ -581,8 +647,10 @@ public class StandardLibrary {
             throw new StandardLibraryException("hash() does not support " + arg.getType() + " type");
         });
         functions.put("f_read", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("f_read() expects 1 argument, but got " + args.size());
-            if (args.getFirst().getType() != STRING) throw new StandardLibraryException("f_read() expects STRING as first argument");
+            if (args.size() != 1)
+                throw new StandardLibraryException("f_read() expects 1 argument, but got " + args.size());
+            if (args.getFirst().getType() != STRING)
+                throw new StandardLibraryException("f_read() expects STRING as first argument");
             String path = args.getFirst().toString();
             try {
                 String result = Files.readString(resolvePath(path));
@@ -592,21 +660,26 @@ public class StandardLibrary {
             }
         });
         functions.put("f_readline", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("f_readline() expects 2 arguments, but got " + args.size());
-            if (args.getFirst().getType() != STRING) throw new StandardLibraryException("f_readline() expects STRING as first argument, but got" + args.getFirst().getType());
-            if (args.get(1).getType() != INT) throw new StandardLibraryException("f_readline() expects INT as second argument, but  got" + args.get(1).getType());
+            if (args.size() != 2)
+                throw new StandardLibraryException("f_readline() expects 2 arguments, but got " + args.size());
+            if (args.getFirst().getType() != STRING)
+                throw new StandardLibraryException("f_readline() expects STRING as first argument, but got" + args.getFirst().getType());
+            if (args.get(1).getType() != INT)
+                throw new StandardLibraryException("f_readline() expects INT as second argument, but  got" + args.get(1).getType());
             String path = args.getFirst().toString();
             long n = args.get(1).toLong();
             try {
                 List<String> lines = Files.readAllLines(resolvePath(path));
-                if (n < 0 || n >= lines.size()) throw new StandardLibraryException("f_readline() line index out of bounds");
+                if (n < 0 || n >= lines.size())
+                    throw new StandardLibraryException("f_readline() line index out of bounds");
                 return new Value(lines.get((int) n), STRING);
             } catch (IOException e) {
                 throw new StandardLibraryException("f_readline() cannot read file: " + e.getMessage());
             }
         });
         functions.put("f_lines", args -> {
-            if (args.size() != 1) throw new StandardLibraryException("f_lines() expects 1 argument, but got " + args.size());
+            if (args.size() != 1)
+                throw new StandardLibraryException("f_lines() expects 1 argument, but got " + args.size());
             if (args.getFirst().getType() != STRING) throw new StandardLibraryException("f_lines() expects STRING");
             try {
                 return Value.of(java.nio.file.Files.readAllLines(resolvePath(args.getFirst().toString())).size());
@@ -615,9 +688,12 @@ public class StandardLibrary {
             }
         });
         functions.put("f_append", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("f_append() expects 2 arguments, but got " + args.size());
-            if (args.getFirst().getType() != STRING) throw new StandardLibraryException("f_append() expects STRING as first argument");
-            if (args.get(1).getType() != STRING) throw new StandardLibraryException("f_append() expects STRING as second argument");
+            if (args.size() != 2)
+                throw new StandardLibraryException("f_append() expects 2 arguments, but got " + args.size());
+            if (args.getFirst().getType() != STRING)
+                throw new StandardLibraryException("f_append() expects STRING as first argument");
+            if (args.get(1).getType() != STRING)
+                throw new StandardLibraryException("f_append() expects STRING as second argument");
             String path = args.getFirst().toString();
             String content = args.get(1).toString();
             try {
@@ -628,9 +704,12 @@ public class StandardLibrary {
             }
         });
         functions.put("f_write", args -> {
-            if (args.size() != 2) throw new StandardLibraryException("f_write() expects 2 arguments, but got " + args.size());
-            if (args.getFirst().getType() != STRING) throw new StandardLibraryException("f_write() expects STRING as first argument");
-            if (args.get(1).getType() != STRING) throw new StandardLibraryException("f_write() expects STRING as second argument");
+            if (args.size() != 2)
+                throw new StandardLibraryException("f_write() expects 2 arguments, but got " + args.size());
+            if (args.getFirst().getType() != STRING)
+                throw new StandardLibraryException("f_write() expects STRING as first argument");
+            if (args.get(1).getType() != STRING)
+                throw new StandardLibraryException("f_write() expects STRING as second argument");
             String path = args.getFirst().toString();
             String content = args.get(1).toString();
             try {

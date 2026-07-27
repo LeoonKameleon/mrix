@@ -7,10 +7,12 @@ import java.util.List;
 
 public class FlatMatrixNode extends AbstractNode {
     private final List<Node> expressionList;
+
     public FlatMatrixNode(List<Node> expressionList, int line) {
         super(line);
         this.expressionList = expressionList;
     }
+
     public DataType accept(NodeVisitor visitor) {
         return visitor.visitFlatMatrixNode(this);
     }
