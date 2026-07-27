@@ -10,7 +10,7 @@ public class Memory {
 
     public Memory(Memory parent) {
         this.parent = parent;
-        memory = new HashMap<String, Value>();
+        memory = new HashMap<>();
     }
 
     public void put(String name, Value value) {

@@ -107,11 +107,11 @@ public class TypeChecker implements NodeVisitor {
                 }
                 for (int i = 0; i < Math.min(ids.size(), elements.size()); i++) {
                     DataType elementType = elements.get(i).accept(this);
-                    table.put(ids.get(i).getLexeme(), new VariableSymbol(ids.get(i).getLexeme(), elementType));
+                    table.put(ids.get(i).getLexeme(), new VariableSymbol(elementType));
                 }
             } else {
                 for (Token id : ids) {
-                    table.put(id.getLexeme(), new VariableSymbol(id.getLexeme(), ANY));
+                    table.put(id.getLexeme(), new VariableSymbol(ANY));
                 }
             }
             return rightSideType;
@@ -122,7 +122,7 @@ public class TypeChecker implements NodeVisitor {
             List<Node> indices = varNode.getExpressionList();
 
             if (indices == null || indices.isEmpty()) {
-                table.put(name, new VariableSymbol(name, rightSideType));
+                table.put(name, new VariableSymbol(rightSideType));
             } else {
                 VariableSymbol symbol = table.get(name);
                 if (symbol == null) {
@@ -149,7 +149,7 @@ public class TypeChecker implements NodeVisitor {
 
         if (node.getVariable() instanceof VariableNode variable) {
             String name = variable.getId().getLexeme();
-            table.put(name, new VariableSymbol(name, rightSideType));
+            table.put(name, new VariableSymbol(rightSideType));
             return rightSideType;
         }
 
@@ -367,7 +367,7 @@ public class TypeChecker implements NodeVisitor {
         if (rangeStartType == INT && rangeEndType == INT) {
             Token id = node.getId();
             table = table.pushScope();
-            table.put(id.getLexeme(), new VariableSymbol(id.getLexeme(), INT));
+            table.put(id.getLexeme(), new VariableSymbol(INT));
             loopDepth++;
             node.getInstruction().accept(this);
             loopDepth--;
@@ -387,12 +387,12 @@ public class TypeChecker implements NodeVisitor {
 
             if (node.getId() instanceof TuplePatternNode pattern) {
                 for (Token id : pattern.getIds()) {
-                    table.put(id.getLexeme(), new VariableSymbol(id.getLexeme(), ANY));
+                    table.put(id.getLexeme(), new VariableSymbol(ANY));
                 }
             } else {
                 VariableNode var = (VariableNode) node.getId();
                 String name = var.getId().getLexeme();
-                table.put(name, new VariableSymbol(name, getElementType(iterableType)));
+                table.put(name, new VariableSymbol(getElementType(iterableType)));
             }
 
             loopDepth++;
@@ -459,10 +459,10 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public DataType visitFunctionNode(FunctionNode node) {
         String name = node.getId().getLexeme();
-        table.put(name, new VariableSymbol(name, DataType.FUNCTION));
+        table.put(name, new VariableSymbol(DataType.FUNCTION));
         table = table.pushScope();
         for (Token parameter : node.getParameterList()) {
-            table.put(parameter.getLexeme(), new VariableSymbol(parameter.getLexeme(), ANY));
+            table.put(parameter.getLexeme(), new VariableSymbol(ANY));
         }
         node.getInstruction().accept(this);
         table = table.popScope();
