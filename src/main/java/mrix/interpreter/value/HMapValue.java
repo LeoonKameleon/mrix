@@ -39,7 +39,7 @@ public class HMapValue {
     }
 
     public List<Value> getKeys() {
-        return new ArrayList<Value>(map.keySet());
+        return new ArrayList<>(map.keySet());
     }
 
     public Map<Value, Value> getMap() {

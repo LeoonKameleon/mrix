@@ -5,7 +5,7 @@ import mrix.typing.type.DataType;
 public class VariableSymbol {
     private final DataType type;
 
-    public VariableSymbol(String name, DataType type) {
+    public VariableSymbol(DataType type) {
         this.type = type;
     }
 
